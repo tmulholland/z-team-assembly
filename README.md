@@ -1,7 +1,7 @@
 # z-team-assembly
 Text files and common code for RA2b Zinv analysers
 
-# Instruction for Bill's integration script
+# Instructions for Bill's integration script
 
 To run the integration code:
 
