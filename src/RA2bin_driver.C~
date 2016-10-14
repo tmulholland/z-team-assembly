@@ -1,0 +1,40 @@
+{
+  gROOT->Reset();
+  gROOT->ProcessLine(".L RA2bin_inputs_Zinv.C+");
+  // gROOT->ProcessLine(".L RA2bin_inputs_Zinv_reclus.C+");
+
+  RA2bin_inputs_Zinv(LDP, "zinvData_2016Jul27/gJets_pu", "zinvData_2016Jul27/DR_pu", "zinvData_2016Jul27/DY_pu", "zinvData_2016Jul27/ZinvMCttzMC160bin.root", 1.0, true);
+  RA2bin_inputs_Zinv(HDP, "zinvData_2016Jul27/gJets_pu", "zinvData_2016Jul27/DR_pu", "zinvData_2016Jul27/DY_pu", "zinvData_2016Jul27/ZinvMCttzMC160bin.root", 1.0, true);
+  RA2bin_inputs_Zinv(Signal, "zinvData_2016Jul27/gJets_pu", "zinvData_2016Jul27/DR_pu", "zinvData_2016Jul27/DY_pu", "zinvData_2016Jul27/ZinvMCttzMC160bin.root", 1.0, true);
+
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2016Jul25/gJets", "zinvData_2016Jul25/DR", "zinvData_2016Jul25/DY", "zinvData_2016Jul25/ZinvMCttzMC160bin.root", 1.0, true);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2016Jul25/gJets", "zinvData_2016Jul25/DR", "zinvData_2016Jul25/DY", "zinvData_2016Jul25/ZinvMCttzMC160bin.root", 1.0, true);
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2016Jul25/gJets", "zinvData_2016Jul25/DR", "zinvData_2016Jul25/DY", "zinvData_2016Jul25/ZinvMCttzMC160bin.root", 1.0, true);
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2016Jul12/gJets", "zinvData_2016Jul12/DR", "zinvData_2016Jul12/DY", "zinvData_2016Jul12/ZinvMCttzMC160bin.root", 1.0);
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2016Jul12/gJets", "zinvData_2016Jul12/DR", "zinvData_2016Jul12/DY", "zinvData_2016Jul12/ZinvMCttzMC160bin.root", 1.0);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2016Jul12/gJets", "zinvData_2016Jul12/DR", "zinvData_2016Jul12/DY", "zinvData_2016Jul12/ZinvMCttzMC160bin.root", 1.0);
+
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2016Jun23/gJets", "DY_kin", "zinvData_2016Jun23/ZinvMCttzMC160bin.root", 1.0, true);
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2016Jun23/gJets", "zinvData_2016Jun23/DY", "zinvData_2016Jun23/ZinvMCttzMC160bin.root", 1.0);
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2016Jun23/gJets", "zinvData_2016Jun23/DY", "zinvData_2016Jun23/ZinvMCttzMC160bin.root", 1.0);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2016Jun23/gJets", "zinvData_2016Jun23/DY", "zinvData_2016Jun23/ZinvMCttzMC160bin.root", 1.0);
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2015Dec15/gJets_2.1", "zinvData_2015Dec15/DY_2.1ifb", "zinvData_2015Dec15/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2015Dec15/gJets_2.1ifb", "zinvData_2015Dec15/DY_2.1ifb", "zinvData_2015Dec15/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2015Dec15/gJets_2.1ifb", "zinvData_2015Dec15/DY_2.1ifb", "zinvData_2015Dec15/ZinvMC-72bin-L211.root", 1.0);
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2015Dec8/gJets_2.1ifb", "zinvData_2015Dec8/DY_2.1ifb", "zinvData_2015Dec8/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2015Dec8/gJets_2.1ifb", "zinvData_2015Dec8/DY_2.1ifb", "zinvData_2015Dec8/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2015Dec8/gJets_2.1ifb", "zinvData_2015Dec8/DY_2.1ifb", "zinvData_2015Dec8/ZinvMC-72bin-L211.root", 1.0);
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2015Dec2_reclus/gJets_2.1ifb", "zinvData_2015Dec2_reclus/DY_2.1ifb", "zinvData_2015Dec2_reclus/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2015Dec2_reclus/gJets_2.1ifb", "zinvData_2015Dec2_reclus/DY_2.1ifb", "zinvData_2015Dec2_reclus/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2015Dec2_reclus/gJets_2.1ifb", "zinvData_2015Dec2_reclus/DY_2.1ifb", "zinvData_2015Dec2_reclus/ZinvMC-72bin-L211.root", 1.0);
+
+  // RA2bin_inputs_Zinv(Signal, "zinvData_2015Nov28_reclus/gJets_2.1ifb", "zinvData_2015Nov28_reclus/DY_2.1ifb", "zinvData_2015Nov28/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(LDP, "zinvData_2015Nov28_reclus/gJets_2.1ifb", "zinvData_2015Nov28_reclus/DY_2.1ifb", "zinvData_2015Nov28/ZinvMC-72bin-L211.root", 1.0);
+  // RA2bin_inputs_Zinv(HDP, "zinvData_2015Nov28_reclus/gJets_2.1ifb", "zinvData_2015Nov28_reclus/DY_2.1ifb", "zinvData_2015Nov28/ZinvMC-72bin-L211.root", 1.0);
+  }
