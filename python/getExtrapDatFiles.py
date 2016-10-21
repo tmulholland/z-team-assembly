@@ -165,7 +165,7 @@ for sample in doSample:
     Bin = 4*4*len(kinRange)-4*(len(kinRange)+2)/5-len(kinRange)+1
 
     ## remove  low HT bins
-    kinRangeCut = kinRange
+    kinRangeCut = list(kinRange)
     for i in [11,1,4]:
         if i in kinRangeCut:
             kinRangeCut.remove(i)
@@ -187,7 +187,7 @@ for sample in doSample:
     ## had to add this funny business to 
     ## remove the bins that don't have
     ## any events
-    removedBins = RA2b.getRemovedBins()
+    removedBins = RA2b.getRemovedBins(kinRange=kinRange)
     subtractBins = removedBins[0]
     avoidBins = removedBins[1]
     
