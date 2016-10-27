@@ -75,6 +75,9 @@ for sample in doSample:
     ## comine the uncertainties into one list to be called later
     purSyst = [pursyst_2j,pursyst_3to4j,pursyst_5jplus,pursyst_5jplus,pursyst_5jplus]
   
+    ## This is needed else applying efficiencies later does weird things
+    effFile.Close()
+    
     ####################################################################
     ## end get purity uncertainties ####################################
     ####################################################################
@@ -161,14 +164,14 @@ for sample in doSample:
     ## this block is here to ensure that even when the corresponding
     ## photon 0b bin is zero, the extrapolation factors are non zero
 
-    ## first NJets=9 bin
-    Bin = 4*4*len(kinRange)-4*(len(kinRange)+2)/5-len(kinRange)+1
-
     ## remove  low HT bins
     kinRangeCut = list(kinRange)
     for i in [11,1,4]:
         if i in kinRangeCut:
             kinRangeCut.remove(i)
+
+    ## first NJets=9 bin
+    Bin = 3*4*len(kinRange)+4*len(kinRangeCut)-len(kinRange)+1
 
     nonZeroBin = Bin-len(kinRangeCut)
     for nj in [5]:

@@ -15,4 +15,4 @@ ttzvv = RA2b.getHist('ttzvv',applyPuWeight=True,doLumi=doLumi)
 zinv.Add(ttzvv)
 
 ## store the histogrma 
-zinv.SaveAs('../plots/histograms/ZinvMCttzMC172bin.root')
+zinv.SaveAs('../plots/histograms/ZinvMCttzMC174bin.root')
