@@ -8,7 +8,7 @@ import RA2b
 doLumi = 24.5
 
 ## get Zinv and ttZ histograms
-zinv = RA2b.getHist('zinv',applyPuWeight=True,doLumi=doLumi)
+zinv = RA2b.getHist('zinv',applyPuWeight=True,doLumi=doLumi,removeZkfactor=False)
 ttzvv = RA2b.getHist('ttzvv',applyPuWeight=True,doLumi=doLumi)
 
 ## add the two samples
