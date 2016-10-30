@@ -33,7 +33,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 			const TString gJetsFnRoot = TString("gJets"),
 			const TString DRfnRoot = TString("DR"),
 			const TString DYfnRoot = TString("DY"),
-			const TString MCfileName = TString("ZinvMCttzMC160bin.root"),
+			const TString MCfileName = TString("ZinvMCttzMC174bin.root"),
 			const Float_t MClumiScale = 1.0,
 			const Bool_t expandDYkin = false) {
   //
