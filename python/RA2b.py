@@ -375,9 +375,9 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
         treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
     if(treeName==None):
         treeName = "tree"
-    if(removeZkfactor==None and (sample=='zinv' or sample=='dymm' or sample=='dyee' or sample=='dyll')):
+    if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
         removeZkfactor=True
-    elif(removeZkfactor==None):
+    if(removeZkfactor==None):
         removeZkfactor=False
 
     fileList = []
@@ -979,7 +979,7 @@ def getChain(sample, doLumi=None, treeName=None, doProof=None, treeLoc=None, rem
         treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
     if(treeName==None):
         treeName = "tree"
-    if(removeZkfactor==None and (sample=='zinv' or sample=='dymm' or sample=='dyee' or sample=='dyll')):
+    if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
         removeZkfactor=True
     elif(removeZkfactor==None):
         removeZkfactor=False
@@ -1125,7 +1125,7 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
         #codeList[4]: "Sum$(photon_nonPrompt)==0&&Photons[0].Pt()>=200&&Sum$(photon_fullID)==1&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         # codeList[4]: "Sum$(photon_nonPrompt)==0&&Photons[0].Pt()>=200&&Sum$(photon_fullID)==1&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         # codeList[5]: "Sum$(photon_nonPrompt)==1&&Photons[0].Pt()>=200&&Sum$(photon_fullID)==1&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
-        codeList[4]: "Photons[0].Pt()>=200&Sum$(Photons_fullID)==1&&(@Photons.size()==1)&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
+        codeList[4]: "Photons[0].Pt()>=200&&Sum$(Photons_nonPrompt)==0&&Sum$(Photons_fullID)==1&&(@Photons.size()==1)&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         codeList[5]: "Photons[0].Pt()>=200&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         codeList[6]: "@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0&&(@GenMuons.size()==0&&@GenElectrons.size()==0&&@GenTaus.size()==0)",
     }
