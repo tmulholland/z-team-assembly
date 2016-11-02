@@ -1633,7 +1633,7 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
         kinRange = range(kinRange,kinRange+1)
     if(doLumi==None):
         doLumi = 24.5
-    if(removeZkfactor==None and ('zinv' in sample 'dy' in sample)):
+    if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
        removeZkfactor=True
     elif(removeZkfactor==None):
        removeZkfactor=False
