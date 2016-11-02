@@ -25,20 +25,23 @@ for sample in doSample:
 
     ## define kinematic range ##
     kinRange = [] 
+    applyMHTCut=True
+
     ## if qcd binning add 11-13 to beginning of kinRange
     if(sample=='ldp' or sample=='hdp'):
         kinRange+=range(11,14)
+        applyMHTCut=False
 
     ## all samples use 10 nominal kinematic bins
     kinRange+=range(1,11)
     ############################
 
     ## the individual dilepton yields per bin
-    zee = RA2b.getHist('zee',dphiCut=sample,kinRange=kinRange)
-    zmm = RA2b.getHist('zmm',dphiCut=sample,kinRange=kinRange)
+    zee = RA2b.getHist('zee',dphiCut=sample,kinRange=kinRange,applyMHTCut=applyMHTCut)
+    zmm = RA2b.getHist('zmm',dphiCut=sample,kinRange=kinRange,applyMHTCut=applyMHTCut)
     
     ## the stat uncertainty on the extrapolation factors
-    zll_Extrap = RA2b.getExtrapolation(['zee','zmm'],njSplit=False,doFactorization=True,kinRange=-1,dphiCut=sample)
+    zll_Extrap = RA2b.getExtrapolation(['zee','zmm'],njSplit=False,doFactorization=True,kinRange=-1,dphiCut=sample,applyMHTCut=applyMHTCut)
     statErr = []
     for i in range(1,20):
         if(zll_Extrap.GetBinContent(i)==0):
@@ -86,18 +89,18 @@ for sample in doSample:
     ## this is needed to do the split and merge type extrapolation
     ## using hdp even for ldp because it gets divided out
     ## and we gain from the increased stats 
-    h_pho0b_split = RA2b.get0bPrediction('photon',kinRange=kinRange)
+    h_pho0b_split = RA2b.get0bPrediction('photon',kinRange=kinRange,applyMHTCut=applyMHTCut)
     h_pho0b_merged = RA2b.mergeHist(h_pho0b_split,kinRange=kinRange)
     
     ## get the extrapolation factors from data with purities applied
-    h_zeemmExtrp = RA2b.getExtrapolation(['zee','zmm'],doFactorization=True,applyEffs=True,dphiCut=sample,kinRange=kinRange)
+    h_zeemmExtrp = RA2b.getExtrapolation(['zee','zmm'],doFactorization=True,applyEffs=True,dphiCut=sample,kinRange=kinRange,applyMHTCut=applyMHTCut)
 
     ## clone the data extrapolation factors before MC correction for syst calc
     h_zeemmNoCorr = h_zeemmExtrp.Clone()
     
     ## get the correction factors from MC
-    dy_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],applySF=False,applyPuWeight=True,dphiCut=sample,kinRange=kinRange)
-    dyll_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],njSplit=False,kinRange=-1,applySF=False,applyPuWeight=True)
+    dy_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],applySF=False,applyPuWeight=False,dphiCut=sample,kinRange=kinRange,applyMHTCut=applyMHTCut)
+    dyll_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],njSplit=False,kinRange=-1,applySF=False,applyPuWeight=False,applyMHTCut=applyMHTCut)
     
     ## get the binomial correction for syst calc
     h_binom=RA2b.getBinomialCorrection(kinRange=kinRange)
@@ -140,7 +143,51 @@ for sample in doSample:
     ## scale by 1/sqrt(3) : full width at half max
     h_pho_upsyst.Scale(1/3.**0.5)
     h_pho_dnsyst.Scale(1/3.**0.5)
+
+
+    ## remove  low HT bins
+    kinRangeCut = list(kinRange)
+    for i in [11,1,4]:
+        if i in kinRangeCut:
+            kinRangeCut.remove(i)
     
+    ## take ttz contribution in 9+ jets directly from MC
+    ## this requires subtracting off ttz in 7-8 jet before adding to 9+
+    ttz78 = RA2b.getHist('ttzvv',kinRange=-1,njRange=range(4,5),nbRange=range(1,4),dphiCut=sample,applyMHTCut=applyMHTCut)
+    ttz9p = RA2b.getHist('ttzvv',kinRange=-1,njRange=range(5,6),nbRange=range(1,4),dphiCut=sample,applyMHTCut=applyMHTCut)
+    dyll78 = RA2b.getHist('dyll',kinRange=-1,njRange=range(4,5),nbRange=range(1,4),dphiCut=sample,applyMHTCut=applyMHTCut)
+    dyll9p = RA2b.getHist('dyll',kinRange=-1,njRange=range(5,6),nbRange=range(1,4),dphiCut=sample,applyMHTCut=applyMHTCut)
+
+    ll = dyll9p.Clone()
+    ll.Divide(dyll78)
+    ttz78.Multiply(ll)
+    ttz9p.Add(ttz78,-1)
+    ttz9p.Scale(1./len(kinRangeCut))
+
+    ## had to add this funny business to 
+    ## remove the bins that don't have
+    ## any events
+    removedBins = RA2b.getRemovedBins(kinRange=kinRange)
+    subtractBins = removedBins[0]
+    avoidBins = removedBins[1]
+
+    
+    Bin = 1
+    uncutBin = 0
+    for nj in range(1,6):
+        for nb in range(4):
+            for kin in kinRange:
+                uncutBin+=1
+                if(uncutBin in avoidBins):
+                    continue
+                if(nj == 5 and nb>0):
+                    nottz = h_pho_merged.GetBinContent(Bin)
+                    ttz = ttz9p.GetBinContent(nb)
+                    if(nottz>0.):
+                        h_pho_merged.SetBinContent(Bin,nottz+ttz)
+                Bin+=1
+
+
     ## divide out the photon normalization
     ## this gives the extrapolation factors themselves
     h_extrap = h_pho_merged.Clone()
@@ -164,12 +211,6 @@ for sample in doSample:
     ## this block is here to ensure that even when the corresponding
     ## photon 0b bin is zero, the extrapolation factors are non zero
 
-    ## remove  low HT bins
-    kinRangeCut = list(kinRange)
-    for i in [11,1,4]:
-        if i in kinRangeCut:
-            kinRangeCut.remove(i)
-
     ## first NJets=9 bin
     Bin = 3*4*len(kinRange)+4*len(kinRangeCut)-len(kinRange)+1
 
@@ -186,14 +227,7 @@ for sample in doSample:
                 h_pho_dnsyst.SetBinContent(Bin,h_dnsyst_9p)
                 Bin+=1
 
-    
-    ## had to add this funny business to 
-    ## remove the bins that don't have
-    ## any events
-    removedBins = RA2b.getRemovedBins(kinRange=kinRange)
-    subtractBins = removedBins[0]
-    avoidBins = removedBins[1]
-    
+        
     uncutBin = 0
     Bin = 1
     nbnjSubtract = 0
