@@ -384,11 +384,11 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hzvvDYMCstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
   TH1F *hzvvDYsysNjUp = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysNjUp");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjUp, 11, 3999);  
+  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjUp, 7);  
   hzvvDYsysNjUp->GetYaxis()->SetTitle("DY ratio to 0b syst+ error Nj extrapolation");
 
   TH1F *hzvvDYsysNjLow = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysNjLow");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjLow, 11, 3999);  
+  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjLow, 7);  
   hzvvDYsysNjLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
 
   TH1F *hzvvDYsysKin = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysKin");
@@ -862,10 +862,11 @@ Int_t getData_DY(const char* fileName,
   Notes on correlations:
   All DY nuisances except DYsysKin are correlated across all kinematic bins.
   DYstat is correlated across Njets bins for Njets >= 7                1011 = 11, 2999
+  Rb0MCstat is correlated only over kinematic bins                     0011 = 3
+  DYsysNjUp, Low are correlated over Nb for each Njets > <highest bin measured
+    directly from data>, currently only Njets >= 9                     0111 = 7
   DYsysPur is correlated across Njets bins for Njets >= 5,
     and across Nb bins for Nb >=2                                      1111 = 15, 2299        
-  DYsysNjUp, Low are correlated over the Njets > <highest bin measured
-    directly from data>, currently only Njets >= 9 (so, uncorrelated)  0011 = 3
   DYsysKin is uncorrelated (though all are zero for Nb = 0).           0000 = 0
 */
   Int_t Nrow = Rb0.size();
@@ -907,10 +908,10 @@ Int_t getData_DY(const char* fileName,
 	n++; token[n] = strtok(0, "|");
 	n++; token[n] = strtok(0, "|");
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0[ijet][ib][ikin]);
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  // 1011 = 11, 2999
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1011 = 11, 2999
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]);  // 0011 = 3
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  // 1011 = 11, 3999
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 1011 = 11, 3999
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  0111 = 7
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 0111 = 7
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysKin[ijet][ib][ikin]);  // 0000 = 0
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysPur[ijet][ib][ikin]);  // 1111 = 15, 2299
       }
