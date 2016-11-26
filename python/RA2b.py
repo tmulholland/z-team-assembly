@@ -1390,7 +1390,7 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
     ###############################################################################        
     if(doLumi==None):
         doLumi = 24.5
-    if(removeZkfactor==None and (sample=='zinv' or sample=='dymm' or sample=='dyee' or sample=='dyll')):
+    if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
        removeZkfactor=True
     elif(removeZkfactor==None):
        removeZkfactor=False
@@ -1495,13 +1495,13 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
         'gjetsqcd' : 'photonqcd',
     }
     if(sample == 'zmm'):
-        trig = (20, 21, 27, 16)
+        trig = (21, 22, 28, 17)
     elif(sample == 'zee'):
-        trig = (5, 6, 11, 3)
+        trig = (6, 7, 12, 3)
     elif(sample == 'zll'):
-        trig = (20, 21, 27, 16, 5, 6, 11, 3)
+        trig = (21, 22, 28, 17, 6, 7, 12, 3)
     elif(sample == 'photon'):
-        trig = 49
+        trig = 50
     elif(sample == 'sig'):
         trig = (29,33)
     else:
@@ -1633,7 +1633,7 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
         kinRange = range(kinRange,kinRange+1)
     if(doLumi==None):
         doLumi = 24.5
-    if(removeZkfactor==None and (sample=='zinv' or sample=='dymm' or sample=='dyee' or sample=='dyll')):
+    if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
        removeZkfactor=True
     elif(removeZkfactor==None):
        removeZkfactor=False
@@ -1744,13 +1744,13 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
     }
 
     if(sample == 'zmm'):
-        trig = (20, 21, 27, 16)
+        trig = (21, 22, 28, 17)
     elif(sample == 'zee'):
-        trig = (5, 6, 11, 3)
+        trig = (6, 7, 12, 3)
     elif(sample == 'zll'):
-        trig = (20, 21, 27, 16, 5, 6, 11, 3)
+        trig = (21, 22, 28, 17, 6, 7, 12, 3)
     elif(sample == 'photon'):
-        trig = 49
+        trig = 50
     elif(sample == 'sig'):
         trig = (29,33)
     else:
