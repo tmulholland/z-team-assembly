@@ -8,27 +8,30 @@ import ROOT
 ########## photon inputs: (value, absolute error) #####
 ## photon efficiency scale factor
 ## apply to MC
+######## obsolete, use SFcorrections.Photons.root #####
 SF = (0.99, 0.01)
 
 ## photon fragmentation
 ## apply to data
+######## obsolete, use fragmentation.root #############
 frag = (0.92, 0.07)
 
-## photon trigger efficiency (Kevin S. provided these)
+## photon trigger efficiency 
+## Andrew provided these (see Nov. 22 email)
 ## apply as a SF to MC (don't apply any simulated triggers to MC)
 ## split by barrel (eb) and endcap (ec)
 ## binning in MHT: [<300, 300-350, 350-500, 500-750, 750+]
-trig_eb = [(0.98821, 0.00230),
-           (0.98692, 0.00293),
-           (0.98347, 0.00246),
-           (0.97952, 0.00562),
-           (0.96992, 0.02312),]
+trig_eb = [(0.969, 0.002),
+           (0.983, 0.001),
+           (0.985, 0.001),
+           (0.984, 0.001),
+           (0.979, 0.004),]
 
-trig_ec = [(0.96296, 0.00438),
-           (0.94843, 0.00567),
-           (0.93808, 0.00508),
-           (0.96579, 0.01191),
-           (1.00000, 0.06836),]
+trig_ec = [(0.953, 0.004),
+           (0.974, 0.003),
+           (0.984, 0.001),
+           (0.989, 0.003),
+           (0.980, 0.019),]
 
 ## photon purity (Andrew provides these)
 ## apply to data
@@ -37,16 +40,16 @@ trig_ec = [(0.96296, 0.00438),
 pur_eb = [(0.9580, 0.0267),
           (0.9623, 0.0028),
           (0.9686, 0.0026),
-          (0.9557, 0.0343),
-          (0.9709, 0.0230),
-          (0.9873, 0.0116),]
+          (0.9571, 0.0225),
+          (0.9491, 0.0493),
+          (0.9524, 0.1010),]
 
 pur_ec = [(0.8879, 0.0108),
           (0.8570, 0.0114),
           (0.8761, 0.0098),
-          (0.8748, 0.0246),
-          (0.9044, 0.0281),
-          (0.9467, 0.0330),]
+          (0.8768, 0.0259),
+          (0.9039, 0.0250),
+          (0.9261, 0.0740),]
 ###################################################
 
 ########## get the efficiency file ################

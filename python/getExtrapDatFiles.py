@@ -99,8 +99,8 @@ for sample in doSample:
     h_zeemmNoCorr = h_zeemmExtrp.Clone()
     
     ## get the correction factors from MC
-    dy_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],applySF=False,applyPuWeight=False,dphiCut=sample,kinRange=kinRange,applyMHTCut=applyMHTCut)
-    dyll_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],njSplit=False,kinRange=-1,applySF=False,applyPuWeight=False,applyMHTCut=applyMHTCut)
+    dy_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],applySF=False,applyPuWeight=True,dphiCut=sample,kinRange=kinRange,applyMHTCut=applyMHTCut)
+    dyll_mc_corr = RA2b.getMonteCarloCorrection(['dyee','dymm'],njSplit=False,kinRange=-1,applySF=False,applyPuWeight=True,applyMHTCut=applyMHTCut)
     
     ## get the binomial correction for syst calc
     h_binom=RA2b.getBinomialCorrection(kinRange=kinRange)
