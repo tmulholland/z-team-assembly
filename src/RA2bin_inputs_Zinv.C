@@ -86,6 +86,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 		      std::vector <std::vector<Float_t> >& ZgRerr,
 		      std::vector <std::vector<Float_t> >& ZgRerrUp,
 		      std::vector <std::vector<Float_t> >& ZgRerrLow,
+		      std::vector <std::vector<Float_t> >& gFrag,
+		      std::vector <std::vector<Float_t> >& gFragErr,
 		      std::vector <std::vector<Float_t> >& gPur,
 		      std::vector <std::vector<Float_t> >& gPurErr,
 		      std::vector <std::vector<Float_t> >& ZgDR,
@@ -174,6 +176,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector <std::vector<Float_t> > ZgRerrLow(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > ZgRerrEffUp(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > ZgRerrEffLow(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFrag(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFragErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFragErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPur(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPurErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPurErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
@@ -201,8 +206,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector < std::vector <std::vector<Float_t> > >
     DYsysPur(MaxNjets, std::vector< std::vector<Float_t> >(MaxNb, std::vector<Float_t>(MaxKinDY, 0)));
   // Read gJets, DY data from files
-  if (0 != getData_gJets(dataFile_gJets, Ngobs, NgobsEB, NgobsEE, ZgR, ZgRerr, ZgRerrUp, ZgRerrLow, gPur, gPurErr,
-			 ZgDR_from_gJets, ZgDRerrUp_from_gJets, ZgDRerrLow_from_gJets)) {
+  if (0 != getData_gJets(dataFile_gJets, Ngobs, NgobsEB, NgobsEE, ZgR, ZgRerr, ZgRerrUp, ZgRerrLow, gFrag, gFragErr,
+			 gPur, gPurErr, ZgDR_from_gJets, ZgDRerrUp_from_gJets, ZgDRerrLow_from_gJets)) {
     cout << "Failed to get data." << endl;
     return;
   }
@@ -671,6 +676,8 @@ Int_t getData_gJets(const char* fileName,
 		    std::vector <std::vector<Float_t> >& ZgRerr,
 		    std::vector <std::vector<Float_t> >& ZgRerrUp,
 		    std::vector <std::vector<Float_t> >& ZgRerrLow,
+		    std::vector <std::vector<Float_t> >& gFrag,
+		    std::vector <std::vector<Float_t> >& gFragErr,
 		    std::vector <std::vector<Float_t> >& gPur,
 		    std::vector <std::vector<Float_t> >& gPurErr,
 		    std::vector <std::vector<Float_t> >& ZgDR,
@@ -687,8 +694,6 @@ Int_t getData_gJets(const char* fileName,
   ZgDRerrUp, Low are uncorrelated among the 40 bins.         0100 = 4  this one
   As of 10 Jul 2016 we combine these last two in ZgDRerrUp, Low.
    */
-  Float_t gPurErrIn;
-  Float_t gFdirErr = 0.076 * 0;  //  This hard-wired number should be handled in a more robust way
   Int_t Nrow = Ngobs.size();
   Int_t Ncol = Ngobs[0].size();
   ifstream dataStream;
@@ -750,16 +755,16 @@ Int_t getData_gJets(const char* fileName,
       sscanf(token[n], "%f", &ZgRerrUp[ijet][ikin]);
       n++; token[n] = strtok(0, ")");             // RZgErrLow  1111 = 15
       sscanf(token[n], "%f", &ZgRerrLow[ijet][ikin]);
-      n++; token[n] = strtok(0, ")");
       n++; token[n] = strtok(0, "|");
-
+      n++; token[n] = strtok(0, "(");             // Fragmentation factor
+      sscanf(token[n], "%f", &gFrag[ijet][ikin]);
+      n++; token[n] = strtok(0, ")");             // FragmentationErr  1111 = 15?
+      sscanf(token[n], "%f", &gFragErr[ijet][ikin]);
+      n++; token[n] = strtok(0, "|");
       n++; token[n] = strtok(0, "(");             // Purity
       sscanf(token[n], "%f", &gPur[ijet][ikin]);
       n++; token[n] = strtok(0, ")");             // PurityErr  1111 = 15
       sscanf(token[n], "%f", &gPurErr[ijet][ikin]);
-      // sscanf(token[n], "%f", &gPurErrIn);
-      // gPurErr[ijet][ikin] = Sqrt(Power(gPurErrIn, 2) - Power(gFdirErr, 2));
-      // printf("%s%6.3f%6.3f\n", "Purity error, modified = ", gPurErrIn, gPurErr[ijet][ikin]);
       n++; token[n] = strtok(0, " ");
       n++; token[n] = strtok(0, "(");             // ZgDR
       sscanf(token[n], "%f", &ZgDR[ijet][ikin]);
