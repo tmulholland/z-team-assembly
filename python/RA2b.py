@@ -46,7 +46,7 @@ def cmsLumi(pad,  iPeriod=None,  iPosX=None, extraText=None ):
     lumi_13TeV = "2.3 fb^{-1}"
     lumi_13TeV_2016 = "20 fb^{-1}"
     lumi_13TeV_V8 = "4.0 fb^{-1}"
-    lumi_13TeV_V9 = "24.5 fb^{-1}"
+    lumi_13TeV_V9 = "36.1 fb^{-1}"
     lumi_8TeV  = "19.7 fb^{-1}" 
     lumi_7TeV  = "5.1 fb^{-1}"
     lumi_sqrtS = ""
@@ -309,7 +309,7 @@ def getTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
     if(treeName==None):
         treeName="tree"
     if(doLumi==None):
-        doLumi = 24.5
+        doLumi = 36.1
     if(doNoisy==None):
         doNoisy=False
     if(removeZkfactor==None):
@@ -354,7 +354,7 @@ def getTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
     return weight
 
 def setTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWeight=None, setWeight=None, doNoisy=None):
-    """Sets the weight of a tree to a corresponding lumi. Default lumi is 24.5 ifb"""
+    """Sets the weight of a tree to a corresponding lumi. Default lumi is 36.1 ifb"""
 
     if(treeName==None):
         treeName="tree"
@@ -370,9 +370,9 @@ def setTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
 def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor=None):
 
     if(doLumi==None):
-        doLumi = 24.5
+        doLumi = 36.1
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
+        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
     if(treeName==None):
         treeName = "tree"
     if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
@@ -382,7 +382,67 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
 
     fileList = []
 
-    if('sig' in sample):
+    if('FullSim' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1bbbb_1000_900.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1bbbb_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_T1bbbb_1000_900.root")
+            fileList.append(treeLoc+"/tree_signal/tree_T1bbbb_1500_100.root")
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1qqqq_1000_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1qqqq_1400_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_T1qqqq_1000_800.root")
+            fileList.append(treeLoc+"/tree_signal/tree_T1qqqq_1400_100.root")
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1tttt_1200_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1tttt_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_T1tttt_1200_800.root")
+            fileList.append(treeLoc+"/tree_signal/tree_T1tttt_1500_100.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1bbbb_1000_900.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1bbbb_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_T1bbbb_1000_900.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_T1bbbb_1500_100.root")
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1qqqq_1000_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1qqqq_1400_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_T1qqqq_1000_800.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_T1qqqq_1400_100.root")
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1tttt_1200_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1tttt_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_T1tttt_1200_800.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_T1tttt_1500_100.root")
+    elif('T1bbbb' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1bbbb_1000_900.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1bbbb_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_T1bbbb_1000_900.root")
+            fileList.append(treeLoc+"/tree_signal/tree_T1bbbb_1500_100.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1bbbb_1000_900.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1bbbb_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_T1bbbb_1000_900.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_T1bbbb_1500_100.root")
+    elif('T1qqqq' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1qqqq_1000_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1qqqq_1400_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_T1qqqq_1000_800.root")
+            fileList.append(treeLoc+"/tree_signal/tree_T1qqqq_1400_100.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1qqqq_1000_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1qqqq_1400_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_T1qqqq_1000_800.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_T1qqqq_1400_100.root")
+    elif('T1tttt' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1tttt_1200_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_T1tttt_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_T1tttt_1200_800.root")
+            fileList.append(treeLoc+"/tree_signal/tree_T1tttt_1500_100.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1tttt_1200_800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_T1tttt_1500_100.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_T1tttt_1200_800.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_T1tttt_1500_100.root")
+    elif('sig' in sample):
         if('LDP' not in sample):
             fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016B.root")
             fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016C.root")
@@ -390,6 +450,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016E.root")
             fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016F.root")
             fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016G.root")
+            fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016H2.root")
+            fileList.append(treeLoc+"/tree_signal/tree_HTMHT_2016H3.root")
         if( ('LDP' in sample) or ('IDP' in sample)):
             fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016B.root")
             fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016C.root")
@@ -397,6 +459,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016E.root")
             fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016F.root")
             fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016G.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016H2.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_HTMHT_2016H3.root")
     elif(sample.startswith('zmm')):
         if('LDP' not in sample):
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016B.root") 
@@ -405,6 +469,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016E.root") 
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016F.root") 
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016G.root") 
+            fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016H2.root") 
+            fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016H3.root") 
         if( ('LDP' in sample) or ('IDP' in sample)):
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016B.root") 
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016C.root") 
@@ -412,6 +478,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016E.root") 
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016F.root") 
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016G.root") 
+            fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016H2.root") 
+            fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016H3.root") 
     elif(sample.startswith('zee')):
         if('LDP' not in sample):
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016B.root") 
@@ -420,6 +488,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016E.root") 
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016F.root") 
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016G.root") 
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016H2.root") 
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016H3.root") 
         if( ('LDP' in sample) or ('IDP' in sample)):
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016B.root") 
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016C.root") 
@@ -427,33 +497,43 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016E.root") 
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016F.root") 
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016G.root") 
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016H2.root") 
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016H3.root") 
     elif(sample.startswith('zll')):
         if('LDP' not in sample):
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016B.root")
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016B.root") 
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016C.root")
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016C.root") 
-            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016D.root") 
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleMuon_2016D.root") 
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016D.root") 
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016E.root")
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016E.root") 
             fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016F.root")
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016F.root") 
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleMuon_2016G.root") 
             fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016G.root") 
-            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016G.root") 
+            fileList.append(treeLoc+"/tree_DYm_CleanVars/tree_SingleMuon_2016H2.root")
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016H2.root") 
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleMuon_2016H3.root") 
+            fileList.append(treeLoc+"/tree_DYe_CleanVars/tree_SingleElectron_2016H3.root") 
         if( ('LDP' in sample) or ('IDP' in sample)):
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016B.root")
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016B.root") 
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016C.root")
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016C.root") 
-            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016D.root") 
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleMuon_2016D.root") 
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016D.root") 
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016E.root")
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016E.root") 
             fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016F.root")
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016F.root") 
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleMuon_2016G.root") 
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016G.root") 
-            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016G.root") 
+            fileList.append(treeLoc+"/tree_DYmLDP_CleanVars/tree_SingleMuon_2016H2.root")
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016H2.root") 
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleMuon_2016H3.root") 
+            fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_SingleElectron_2016H3.root") 
     elif(sample.startswith('photon')):
         if('LDP' not in sample):
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_SinglePhoton_2016B.root") 
@@ -462,6 +542,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_SinglePhoton_2016E.root") 
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_SinglePhoton_2016F.root") 
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_SinglePhoton_2016G.root") 
+            fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_SinglePhoton_2016H2.root") 
+            fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_SinglePhoton_2016H3.root") 
         if( ('LDP' in sample) or ('IDP' in sample)):
             fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016B.root") 
             fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016C.root") 
@@ -469,6 +551,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016E.root") 
             fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016F.root") 
             fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016G.root") 
+            fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016H2.root") 
+            fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016H3.root") 
     elif('zinv' in sample):
         if('LDP' not in sample):
             #setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-100to200.root", doLumi, treeName, removeZkfactor)
@@ -618,8 +702,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             setTreeWeight(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-1000to1500.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-1500to2000.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-2000toInf.root", doLumi, treeName)
-            #fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-200to300.root")
-            #fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-300to500.root")
+            fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-200to300.root")
+            fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-300to500.root")
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-500to700.root")
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-700to1000.root")
             fileList.append(treeLoc+"/tree_GJet_CleanVars/tree_QCD_HT-1000to1500.root")
@@ -801,7 +885,265 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_ZZZ.root")
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_WWZ.root")
             fileList.append(treeLoc+"/tree_DYeLDP_CleanVars/tree_WZZ.root")
-
+    elif('topWsle' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_SLe/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLe/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_tW_top.root")
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-2500toInf.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_tW_top.root")
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-2500toInf.root")
+    elif('topWslm' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_SLm/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLm/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_tW_top.root")
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-2500toInf.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_tW_top.root")
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-2500toInf.root")
+    elif('topW' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_signal/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_signal/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_signal/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_signal/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_signal/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_signal/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_signal/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_signal/tree_ST_tW_top.root")
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-2500toInf.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_LDP/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_ST_tW_top.root")
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-2500toInf.root")
+    elif('topsle' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_SLe/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLe/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_ST_tW_top.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_ST_tW_top.root")
+    elif('topslm' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_SLm/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLm/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_ST_tW_top.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_TTJets.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromTbar.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromT.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_s-channel.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_top.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_tW_antitop.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_ST_tW_top.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_TTJets.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromTbar.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_TTJets_SingleLeptFromT.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_s-channel.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_antitop.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_t-channel_top.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_tW_antitop.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_ST_tW_top.root")
     elif('top' in sample):
         if('LDP' not in sample):
             setTreeWeight(treeLoc+"/tree_signal/tree_TTJets.root", doLumi, treeName)
@@ -837,6 +1179,68 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_LDP/tree_ST_t-channel_top.root")
             fileList.append(treeLoc+"/tree_LDP/tree_ST_tW_antitop.root")
             fileList.append(treeLoc+"/tree_LDP/tree_ST_tW_top.root")
+    elif('wjetssle' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLe/tree_WJetsToLNu_HT-2500toInf.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):        
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLeLDP/tree_WJetsToLNu_HT-2500toInf.root")
+    elif('wjetsslm' in sample):
+        if('LDP' not in sample):
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLm/tree_WJetsToLNu_HT-2500toInf.root")
+        if( ('LDP' in sample) or ('IDP' in sample)):        
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-200to400.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-400to600.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-600to800.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-800to1200.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-1200to2500.root", doLumi, treeName)
+            setTreeWeight(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-2500toInf.root", doLumi, treeName)
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-100to200.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-200to400.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-400to600.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-600to800.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-800to1200.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-1200to2500.root")
+            fileList.append(treeLoc+"/tree_SLmLDP/tree_WJetsToLNu_HT-2500toInf.root")
     elif('wjets' in sample):
         if('LDP' not in sample):
             setTreeWeight(treeLoc+"/tree_signal/tree_WJetsToLNu_HT-100to200.root", doLumi, treeName)
@@ -870,30 +1274,30 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_LDP/tree_WJetsToLNu_HT-2500toInf.root")
     elif('qcd' in sample):
         if('LDP' not in sample):
-            setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-200to300.root", doLumi, treeName)
-            setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-300to500.root", doLumi, treeName)
+            # setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-200to300.root", doLumi, treeName)
+            # setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-300to500.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-500to700.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-700to1000.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-1000to1500.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-1500to2000.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_signal/tree_QCD_HT-2000toInf.root", doLumi, treeName)
-            fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-200to300.root")
-            fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-300to500.root")
+            # fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-200to300.root")
+            # fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-300to500.root")
             fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-500to700.root")
             fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-700to1000.root")
             fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-1000to1500.root")
             fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-1500to2000.root")
             fileList.append(treeLoc+"/tree_signal/tree_QCD_HT-2000toInf.root")
         if( ('LDP' in sample) or ('IDP' in sample)):
-            setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-200to300.root", doLumi, treeName)
-            setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-300to500.root", doLumi, treeName)
+            # setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-200to300.root", doLumi, treeName)
+            # setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-300to500.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-500to700.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-700to1000.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-1000to1500.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-1500to2000.root", doLumi, treeName)
             setTreeWeight(treeLoc+"/tree_LDP/tree_QCD_HT-2000toInf.root", doLumi, treeName)
-            fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-200to300.root")
-            fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-300to500.root")
+            # fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-200to300.root")
+            # fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-300to500.root")
             fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-500to700.root")
             fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-700to1000.root")
             fileList.append(treeLoc+"/tree_LDP/tree_QCD_HT-1000to1500.root")
@@ -972,11 +1376,11 @@ def getChain(sample, doLumi=None, treeName=None, doProof=None, treeLoc=None, rem
     zinv: Z->nunu MC
     """    
     if(doLumi==None):
-        doLumi = 24.5
+        doLumi = 36.1
     if(doProof==None):
         doProof = False
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
+        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
     if(treeName==None):
         treeName = "tree"
     if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
@@ -1005,7 +1409,7 @@ def getChain(sample, doLumi=None, treeName=None, doProof=None, treeLoc=None, rem
 
     return chain
   
-def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=None, extraCuts=None, applyMassCut=None, applyPtCut=None, applyHTCut=None, applyMHTCut=None, applyNJetsCut=None, applySF=None, njSplit=None, applyPuWeight=None):
+def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=None, extraCuts=None, applyMassCut=None, applyPtCut=None, applyHTCut=None, applyMHTCut=None, applyNJetsCut=None, applySF=None, njSplit=None, applyPuWeight=None, extraWeight=None):
 
     cuts = ROOT.TCut("")
 
@@ -1041,7 +1445,7 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
         njSplit=False
     if(applyPuWeight==None):
         applyPuWeight=False
-
+    
     #####################################################################
     # end set defaults and initialize 
     #####################################################################
@@ -1110,24 +1514,26 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
         "none" : ""
     }
 
-    # 0 = sig, 1 = dimuon, 2 = dielectron, 3 = dilepton, 4 = photon, 5 = ttZ->nunu
-    codeList = [0, 1, 2, 3, 4, 5, 6]
+    # 0 = sig, 1 = dimuon, 2 = dielectron, 3 = dilepton, 4 = photon, 5 = photonqcd, 6 = ttZ->nunu
+    codeList = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     if(type(code) is str):
-        codeList = ["sig","zmm","zee","zll","photon","photonqcd","ttz"]
+        codeList = ["sig","zmm","zee","zll","photon","photonqcd","ttz","slm","sle"]
 
     Zcuts = {
         codeList[0]: "@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
-        codeList[1]: "@Muons.size()==2&&@Electrons.size()==0&&isoElectronTracks==0&&isoPionTracks==0",
-        codeList[2]: "@Muons.size()==0&&@Electrons.size()==2&&isoMuonTracks==0&&isoPionTracks==0",
+        codeList[1]: "@Muons.size()==2&&@Electrons.size()==0&&isoElectronTracks==0&&isoPionTracks==0&&(@Photons.size()==0)&&isoMuonTracks==0",
+        codeList[2]: "@Muons.size()==0&&@Electrons.size()==2&&isoMuonTracks==0&&isoPionTracks==0&&(@Photons.size()==0)&&isoElectronTracks==0",
         codeList[3]: "((@Muons.size()==2&&@Electrons.size()==0&&isoElectronTracks==0&&isoPionTracks==0)||(@Muons.size()==0&&@Electrons.size()==2&&isoMuonTracks==0&&isoPionTracks==0))",
         #codeList[4]: "(Sum$(Photons.Pt())>=200)&&(@Photons.size()==1)&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         #codeList[4]: "Sum$(photon_nonPrompt)==0&&Photons[0].Pt()>=200&&Sum$(photon_fullID)==1&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         # codeList[4]: "Sum$(photon_nonPrompt)==0&&Photons[0].Pt()>=200&&Sum$(photon_fullID)==1&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         # codeList[5]: "Sum$(photon_nonPrompt)==1&&Photons[0].Pt()>=200&&Sum$(photon_fullID)==1&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
-        codeList[4]: "Photons[0].Pt()>=200&&Sum$(Photons_nonPrompt)==0&&Sum$(Photons_fullID)==1&&(@Photons.size()==1)&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
-        codeList[5]: "Photons[0].Pt()>=200&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
+        codeList[4]: "Sum$(Photons_nonPrompt)==0&&Sum$(Photons_fullID)==1&&(@Photons.size()==1)&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
+        codeList[5]: "Sum$(Photons_nonPrompt)!=0&&Photons[0].Pt()>=200&&@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0",
         codeList[6]: "@Muons.size()==0&&@Electrons.size()==0&&isoElectronTracks==0&&isoMuonTracks==0&&isoPionTracks==0&&(@GenMuons.size()==0&&@GenElectrons.size()==0&&@GenTaus.size()==0)",
+        codeList[7]: "@Muons.size()==1&&@Electrons.size()==0&&isoElectronTracks==0&&isoPionTracks==0",
+        codeList[8]: "@Muons.size()==0&&@Electrons.size()==1&&isoMuonTracks==0&&isoPionTracks==0",
     }
 
     # define other cuts
@@ -1139,6 +1545,9 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
     if((code == 'zmm' or code == 'zee' or code == 'zll') and applyPtCut):
         ptCut = "ZCandidates.Pt()>=200."
 
+    if((code == 'photon') and applyPtCut):
+        ptCut = "Photons[0].Pt()>=200."
+
     #commonCuts = "(JetID==1&&CSCTightHaloFilter==1&&HBHENoiseFilter==1&&HBHEIsoNoiseFilter==1&&eeBadScFilter==1&&EcalDeadCellTriggerPrimitiveFilter==1&&NVtx>0)"
     #commonCuts = "(JetID==1&&CSCTightHaloFilter==1&&globalTightHalo2016Filter && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0)"
     #commonCuts = "(JetID==1)"
@@ -1149,6 +1558,10 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
         commonCuts = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0"
     else:
         commonCuts = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0"
+
+    if(code=='photon' and trig==-1):
+        cuts += "madMinPhotonDeltaR>=0.4"
+        
 
     trigCuts = ""
     if(type(trig) is tuple):
@@ -1177,7 +1590,7 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
     if(applyMHTCut==True):
         cuts+="MHT>=300"
     else:
-        cuts+="MHT>=200"
+        cuts+="MHT>=250"
     if(applyNJetsCut==True):
         cuts+="NJets>=3"
     else:
@@ -1197,6 +1610,9 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
         cuts+=bJetCuts[bJetBin]
     if(applyPuWeight):
         cuts*="puWeight*(1)"
+    if(type(extraWeight) is str):
+        extraWeight+='*(1)'
+        cuts*=extraWeight
     #####################################################################
     # end add up cuts
     #####################################################################
@@ -1214,44 +1630,49 @@ def getEffWeights(sample):
     effFile = ROOT.TFile.Open("../plots/histograms/effHists.root", "read")
     effFileSFm = ROOT.TFile.Open("../plots/histograms/SFcorrections.Muons.root", "read")
     effFileSFe = ROOT.TFile.Open("../plots/histograms/SFcorrections.Electrons.root", "read")
+    effFileSFg = ROOT.TFile.Open("../plots/histograms/SFcorrections.Photons.root", "read")
+    effFileFrag = ROOT.TFile.Open("../plots/histograms/fragmentation.root", "read")
 
     if(sample=='zmm'):
-        h_pur_m = effFile.Get("h_pur_m4")
-        effWeights="((BTags==0)*"+str(h_pur_m.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(3))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(4))+")"
+        h_pur_m = effFile.Get("h_pur_m")
+        effWeights="((NJets==2)*((BTags==0)*"+str(h_pur_m.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(3))+")+(NJets>=3&&NJets<=4)*((BTags==0)*"+str(h_pur_m.GetBinContent(4))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(5))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(6))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(7))+")+(NJets>=5&&NJets<=6)*((BTags==0)*"+str(h_pur_m.GetBinContent(8))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(9))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(10))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(11))+")+(NJets>=7&&NJets<=8)*((BTags==0)*"+str(h_pur_m.GetBinContent(12))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(13))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(14))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(15))+")+(NJets>=9)*((BTags==0)*"+str(h_pur_m.GetBinContent(16))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(17))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(18))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(19))+"))"
     if(sample=='zee'):
-        h_pur_e = effFile.Get("h_pur_e4")
-        effWeights="((BTags==0)*"+str(h_pur_e.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(3))+"+(BTags>=3)*"+str(h_pur_e.GetBinContent(4))+")"
+        h_pur_e = effFile.Get("h_pur_e")
+        effWeights="((NJets==2)*((BTags==0)*"+str(h_pur_e.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(3))+")+(NJets>=3&&NJets<=4)*((BTags==0)*"+str(h_pur_e.GetBinContent(4))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(5))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(6))+"+(BTags>=3)*"+str(h_pur_e.GetBinContent(7))+")+(NJets>=5&&NJets<=6)*((BTags==0)*"+str(h_pur_e.GetBinContent(8))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(9))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(10))+"+(BTags>=3)*"+str(h_pur_e.GetBinContent(11))+")+(NJets>=7&&NJets<=8)*((BTags==0)*"+str(h_pur_e.GetBinContent(12))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(13))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(14))+"+(BTags>=3)*"+str(h_pur_e.GetBinContent(15))+")+(NJets>=9)*((BTags==0)*"+str(h_pur_e.GetBinContent(16))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(17))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(18))+"+(BTags>=3)*"+str(h_pur_e.GetBinContent(19))+"))"
     if(sample=='zll'):
-        h_pur_m = effFile.Get("h_pur_m4")
-        effWeights="(((BTags==0)*"+str(h_pur_m.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(3))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(4))+")+((BTags==0)*"+str(h_pur_e.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_e.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_e.GetBinContent(3))+"+(BTags>=3)*"+str(h_pur_e.GetBinContent(4))+"))"
+        h_pur_m = effFile.Get("h_pur_m")
+        effWeights="((NJets==2)*((BTags==0)*"+str(h_pur_m.GetBinContent(1))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(2))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(3))+")+(NJets>=3&&NJets<=4)*((BTags==0)*"+str(h_pur_m.GetBinContent(4))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(5))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(6))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(7))+")+(NJets>=5&&NJets<=6)*((BTags==0)*"+str(h_pur_m.GetBinContent(8))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(9))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(10))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(11))+")+(NJets>=7&&NJets<=8)*((BTags==0)*"+str(h_pur_m.GetBinContent(12))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(13))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(14))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(15))+")+(NJets>=9)*((BTags==0)*"+str(h_pur_m.GetBinContent(16))+"+(BTags==1)*"+str(h_pur_m.GetBinContent(17))+"+(BTags==2)*"+str(h_pur_m.GetBinContent(18))+"+(BTags>=3)*"+str(h_pur_m.GetBinContent(19))+"))"
     if(sample=='photon'):
+        ROOT.v5.TFormula.SetMaxima(10000,1000,1000)
         h_pur_eb = effFile.Get("h_pur_eb")
         h_pur_ec = effFile.Get("h_pur_ec")
-        h_frag = effFile.Get("h_frag1")
-        effWeights = "("+str(h_frag.GetBinContent(1))+")*( (Photons_isEB==1)*((MHT<225)*"+str(h_pur_eb.GetBinContent(1))+"+(MHT>=225&&MHT<250)*"+str(h_pur_eb.GetBinContent(2))+"+(MHT>=250&&MHT<300)*"+str(h_pur_eb.GetBinContent(3))+"+(MHT>=300&&MHT<350)*"+str(h_pur_eb.GetBinContent(4))+"+(MHT>=350&&MHT<=500)*"+str(h_pur_eb.GetBinContent(5))+"+(MHT>=500)*"+str(h_pur_eb.GetBinContent(6))+") + (Photons_isEB==0)*((MHT<225)*"+str(h_pur_ec.GetBinContent(1))+"+(MHT>=225&&MHT<250)*"+str(h_pur_ec.GetBinContent(2))+"+(MHT>=250&&MHT<300)*"+str(h_pur_ec.GetBinContent(3))+"+(MHT>=300&&MHT<350)*"+str(h_pur_ec.GetBinContent(4))+"+(MHT>=350&&MHT<=500)*"+str(h_pur_ec.GetBinContent(5))+"+(MHT>=500)*"+str(h_pur_ec.GetBinContent(6))+"))"
+        g_frag = effFileFrag.Get("bin46_intHT_f")
+        fragVector = g_frag.GetY()
+        effWeights = "((NJets==2)*((HT>=300&&HT<500&&MHT>=300&&MHT<350)*"+str(fragVector[0])+"+(HT>=500&&HT<1000&&MHT>=300&&MHT<350)*"+str(fragVector[1])+"+(HT>=1000&&MHT>=300&&MHT<350)*"+str(fragVector[2])+"+(HT>=350&&HT<500&&MHT>=350&&MHT<500)*"+str(fragVector[3])+"+(HT>=500&&HT<1000&&MHT>=350&&MHT<500)*"+str(fragVector[4])+"+(HT>=1000&&MHT>=350&&MHT<500)*"+str(fragVector[5])+"+(HT>=500&&HT<1000&&MHT>=500&&MHT<750)*"+str(fragVector[6])+"+(HT>=1000&&MHT>=500&&MHT<750)*"+str(fragVector[7])+"+(HT>=750&&HT<1500&&MHT>=750)*"+str(fragVector[8])+"+(HT>=1500&&MHT>=750)*"+str(fragVector[9])+")+(NJets>=3&&NJets<=4)*((HT>=300&&HT<500&&MHT>=300&&MHT<350)*"+str(fragVector[10])+"+(HT>=500&&HT<1000&&MHT>=300&&MHT<350)*"+str(fragVector[11])+"+(HT>=1000&&MHT>=300&&MHT<350)*"+str(fragVector[12])+"+(HT>=350&&HT<500&&MHT>=350&&MHT<500)*"+str(fragVector[13])+"+(HT>=500&&HT<1000&&MHT>=350&&MHT<500)*"+str(fragVector[14])+"+(HT>=1000&&MHT>=350&&MHT<500)*"+str(fragVector[15])+"+(HT>=500&&HT<1000&&MHT>=500&&MHT<750)*"+str(fragVector[16])+"+(HT>=1000&&MHT>=500&&MHT<750)*"+str(fragVector[17])+"+(HT>=750&&HT<1500&&MHT>=750)*"+str(fragVector[18])+"+(HT>=1500&&MHT>=750)*"+str(fragVector[19])+")+(NJets>=5&&NJets<=6)*((HT>=300&&HT<500&&MHT>=300&&MHT<350)*"+str(fragVector[20])+"+(HT>=500&&HT<1000&&MHT>=300&&MHT<350)*"+str(fragVector[21])+"+(HT>=1000&&MHT>=300&&MHT<350)*"+str(fragVector[22])+"+(HT>=350&&HT<500&&MHT>=350&&MHT<500)*"+str(fragVector[23])+"+(HT>=500&&HT<1000&&MHT>=350&&MHT<500)*"+str(fragVector[24])+"+(HT>=1000&&MHT>=350&&MHT<500)*"+str(fragVector[25])+"+(HT>=500&&HT<1000&&MHT>=500&&MHT<750)*"+str(fragVector[26])+"+(HT>=1000&&MHT>=500&&MHT<750)*"+str(fragVector[27])+"+(HT>=750&&HT<1500&&MHT>=750)*"+str(fragVector[28])+"+(HT>=1500&&MHT>=750)*"+str(fragVector[29])+")+(NJets>=7&&NJets<=8)*((HT>=300&&HT<500&&MHT>=300&&MHT<350)*"+str(fragVector[30])+"+(HT>=500&&HT<1000&&MHT>=300&&MHT<350)*"+str(fragVector[30])+"+(HT>=1000&&MHT>=300&&MHT<350)*"+str(fragVector[31])+"+(HT>=350&&HT<500&&MHT>=350&&MHT<500)*"+str(fragVector[32])+"+(HT>=500&&HT<1000&&MHT>=350&&MHT<500)*"+str(fragVector[32])+"+(HT>=1000&&MHT>=350&&MHT<500)*"+str(fragVector[33])+"+(HT>=500&&HT<1000&&MHT>=500&&MHT<750)*"+str(fragVector[34])+"+(HT>=1000&&MHT>=500&&MHT<750)*"+str(fragVector[35])+"+(HT>=750&&HT<1500&&MHT>=750)*"+str(fragVector[36])+"+(HT>=1500&&MHT>=750)*"+str(fragVector[37])+")+(NJets>=9)*((HT>=300&&HT<500&&MHT>=300&&MHT<350)*"+str(fragVector[38])+"+(HT>=500&&HT<1000&&MHT>=300&&MHT<350)*"+str(fragVector[38])+"+(HT>=1000&&MHT>=300&&MHT<350)*"+str(fragVector[39])+"+(HT>=350&&HT<500&&MHT>=350&&MHT<500)*"+str(fragVector[40])+"+(HT>=500&&HT<1000&&MHT>=350&&MHT<500)*"+str(fragVector[40])+"+(HT>=1000&&MHT>=350&&MHT<500)*"+str(fragVector[41])+"+(HT>=500&&HT<1000&&MHT>=500&&MHT<750)*"+str(fragVector[42])+"+(HT>=1000&&MHT>=500&&MHT<750)*"+str(fragVector[43])+"+(HT>=750&&HT<1500&&MHT>=750)*"+str(fragVector[44])+"+(HT>=1500&&MHT>=750)*"+str(fragVector[45])+"))*( (Photons_isEB==1)*((MHT<225)*"+str(h_pur_eb.GetBinContent(1))+"+(MHT>=225&&MHT<250)*"+str(h_pur_eb.GetBinContent(2))+"+(MHT>=250&&MHT<300)*"+str(h_pur_eb.GetBinContent(3))+"+(MHT>=300&&MHT<350)*"+str(h_pur_eb.GetBinContent(4))+"+(MHT>=350&&MHT<=500)*"+str(h_pur_eb.GetBinContent(5))+"+(MHT>=500)*"+str(h_pur_eb.GetBinContent(6))+") + (Photons_isEB==0)*((MHT<225)*"+str(h_pur_ec.GetBinContent(1))+"+(MHT>=225&&MHT<250)*"+str(h_pur_ec.GetBinContent(2))+"+(MHT>=250&&MHT<300)*"+str(h_pur_ec.GetBinContent(3))+"+(MHT>=300&&MHT<350)*"+str(h_pur_ec.GetBinContent(4))+"+(MHT>=350&&MHT<=500)*"+str(h_pur_ec.GetBinContent(5))+"+(MHT>=500)*"+str(h_pur_ec.GetBinContent(6))+"))"
     if(sample=='dymm'):
         h_trig_m = effFile.Get("h_trig_m1")
         h_SF_m = effFileSFm.Get("h_MHT")
-        effWeights = "("+str(h_trig_m.GetBinContent(1))+")*((MHT<350)*"+str(1/h_SF_m.GetBinContent(1))+"+(MHT>=350&&MHT<450)*"+str(1/h_SF_m.GetBinContent(2))+"+(MHT>=450&&MHT<550)*"+str(1/h_SF_m.GetBinContent(3))+"+(MHT>=550&&MHT<650)*"+str(1/h_SF_m.GetBinContent(4))+"+(MHT>=650&&MHT<750)*"+str(1/h_SF_m.GetBinContent(5))+"+(MHT>=750&&MHT<850)*"+str(1/h_SF_m.GetBinContent(6))+"+(MHT>=850&&MHT<950)*"+str(1/h_SF_m.GetBinContent(7))+"+(MHT>=950&&MHT<1050)*"+str(1/h_SF_m.GetBinContent(8))+"+(MHT>=1050&&MHT<1150)*"+str(1/h_SF_m.GetBinContent(9))+"+(MHT>=1150)*"+str(1/h_SF_m.GetBinContent(10))+")"
+        effWeights = "("+str(h_trig_m.GetBinContent(1))+")*((MHT<400)*"+str(h_SF_m.GetBinContent(1))+"+(MHT>=400&&MHT<500)*"+str(h_SF_m.GetBinContent(2))+"+(MHT>=500&&MHT<600)*"+str(h_SF_m.GetBinContent(3))+"+(MHT>=600&&MHT<700)*"+str(h_SF_m.GetBinContent(4))+"+(MHT>=700&&MHT<800)*"+str(h_SF_m.GetBinContent(5))+"+(MHT>=800&&MHT<900)*"+str(h_SF_m.GetBinContent(6))+"+(MHT>=900&&MHT<1000)*"+str(h_SF_m.GetBinContent(7))+"+(MHT>=1000&&MHT<1100)*"+str(h_SF_m.GetBinContent(8))+"+(MHT>=1100&&MHT<1200)*"+str(h_SF_m.GetBinContent(9))+"+(MHT>=1200)*"+str(h_SF_m.GetBinContent(10))+")"
     if(sample=='dyee'):
         h_trig_e = effFile.Get("h_trig_e1")
         h_SF_e = effFileSFe.Get("h_MHT")
-        effWeights = "("+str(h_trig_e.GetBinContent(1))+")*((MHT<350)*"+str(1/h_SF_e.GetBinContent(1))+"+(MHT>=350&&MHT<450)*"+str(1/h_SF_e.GetBinContent(2))+"+(MHT>=450&&MHT<550)*"+str(1/h_SF_e.GetBinContent(3))+"+(MHT>=550&&MHT<650)*"+str(1/h_SF_e.GetBinContent(4))+"+(MHT>=650&&MHT<750)*"+str(1/h_SF_e.GetBinContent(5))+"+(MHT>=750&&MHT<850)*"+str(1/h_SF_e.GetBinContent(6))+"+(MHT>=850&&MHT<950)*"+str(1/h_SF_e.GetBinContent(7))+"+(MHT>=950&&MHT<1050)*"+str(1/h_SF_e.GetBinContent(8))+"+(MHT>=1050&&MHT<1150)*"+str(1/h_SF_e.GetBinContent(9))+"+(MHT>=1150)*"+str(1/h_SF_e.GetBinContent(10))+")"
+        effWeights = "("+str(h_trig_e.GetBinContent(1))+")*((MHT<400)*"+str(h_SF_e.GetBinContent(1))+"+(MHT>=400&&MHT<500)*"+str(h_SF_e.GetBinContent(2))+"+(MHT>=500&&MHT<600)*"+str(h_SF_e.GetBinContent(3))+"+(MHT>=600&&MHT<700)*"+str(h_SF_e.GetBinContent(4))+"+(MHT>=700&&MHT<800)*"+str(h_SF_e.GetBinContent(5))+"+(MHT>=800&&MHT<900)*"+str(h_SF_e.GetBinContent(6))+"+(MHT>=900&&MHT<1000)*"+str(h_SF_e.GetBinContent(7))+"+(MHT>=1000&&MHT<1100)*"+str(h_SF_e.GetBinContent(8))+"+(MHT>=1100&&MHT<1200)*"+str(h_SF_e.GetBinContent(9))+"+(MHT>=1200)*"+str(h_SF_e.GetBinContent(10))+")"
     if(sample=='dyll'):
         h_trig_m = effFile.Get("h_trig_m1")
         h_SF_m = effFileSFm.Get("h_MHT")
         h_trig_e = effFile.Get("h_trig_e1")
         h_SF_e = effFileSFe.Get("h_MHT")
-        effWeights = "(("+str(h_trig_m.GetBinContent(1))+")*((MHT<350)*"+str(1/h_SF_m.GetBinContent(1))+"+(MHT>=350&&MHT<450)*"+str(1/h_SF_m.GetBinContent(2))+"+(MHT>=450&&MHT<550)*"+str(1/h_SF_m.GetBinContent(3))+"+(MHT>=550&&MHT<650)*"+str(1/h_SF_m.GetBinContent(4))+"+(MHT>=650&&MHT<750)*"+str(1/h_SF_m.GetBinContent(5))+"+(MHT>=750&&MHT<850)*"+str(1/h_SF_m.GetBinContent(6))+"+(MHT>=850&&MHT<950)*"+str(1/h_SF_m.GetBinContent(7))+"+(MHT>=950&&MHT<1050)*"+str(1/h_SF_m.GetBinContent(8))+"+(MHT>=1050&&MHT<1150)*"+str(1/h_SF_m.GetBinContent(9))+"+(MHT>=1150)*"+str(1/h_SF_m.GetBinContent(10))+")+("+str(h_trig_e.GetBinContent(1))+")*((MHT<350)*"+str(1/h_SF_e.GetBinContent(1))+"+(MHT>=350&&MHT<450)*"+str(1/h_SF_e.GetBinContent(2))+"+(MHT>=450&&MHT<550)*"+str(1/h_SF_e.GetBinContent(3))+"+(MHT>=550&&MHT<650)*"+str(1/h_SF_e.GetBinContent(4))+"+(MHT>=650&&MHT<750)*"+str(1/h_SF_e.GetBinContent(5))+"+(MHT>=750&&MHT<850)*"+str(1/h_SF_e.GetBinContent(6))+"+(MHT>=850&&MHT<950)*"+str(1/h_SF_e.GetBinContent(7))+"+(MHT>=950&&MHT<1050)*"+str(1/h_SF_e.GetBinContent(8))+"+(MHT>=1050&&MHT<1150)*"+str(1/h_SF_e.GetBinContent(9))+"+(MHT>=1150)*"+str(1/h_SF_e.GetBinContent(10))+"))"
+        effWeights = "(("+str(h_trig_m.GetBinContent(1))+")*((MHT<350)*"+str(h_SF_m.GetBinContent(1))+"+(MHT>=350&&MHT<450)*"+str(h_SF_m.GetBinContent(2))+"+(MHT>=450&&MHT<550)*"+str(h_SF_m.GetBinContent(3))+"+(MHT>=550&&MHT<650)*"+str(h_SF_m.GetBinContent(4))+"+(MHT>=650&&MHT<750)*"+str(h_SF_m.GetBinContent(5))+"+(MHT>=750&&MHT<850)*"+str(h_SF_m.GetBinContent(6))+"+(MHT>=850&&MHT<950)*"+str(h_SF_m.GetBinContent(7))+"+(MHT>=950&&MHT<1050)*"+str(h_SF_m.GetBinContent(8))+"+(MHT>=1050&&MHT<1150)*"+str(h_SF_m.GetBinContent(9))+"+(MHT>=1150)*"+str(h_SF_m.GetBinContent(10))+")+("+str(h_trig_e.GetBinContent(1))+")*((MHT<350)*"+str(h_SF_e.GetBinContent(1))+"+(MHT>=350&&MHT<450)*"+str(h_SF_e.GetBinContent(2))+"+(MHT>=450&&MHT<550)*"+str(h_SF_e.GetBinContent(3))+"+(MHT>=550&&MHT<650)*"+str(h_SF_e.GetBinContent(4))+"+(MHT>=650&&MHT<750)*"+str(h_SF_e.GetBinContent(5))+"+(MHT>=750&&MHT<850)*"+str(h_SF_e.GetBinContent(6))+"+(MHT>=850&&MHT<950)*"+str(h_SF_e.GetBinContent(7))+"+(MHT>=950&&MHT<1050)*"+str(h_SF_e.GetBinContent(8))+"+(MHT>=1050&&MHT<1150)*"+str(h_SF_e.GetBinContent(9))+"+(MHT>=1150)*"+str(h_SF_e.GetBinContent(10))+"))"
     if(sample=='gjets' or sample=='gjetsqcd' or sample=='ttgjets'):
-        h_SF_g = effFile.Get("h_SF_g1")
+        #h_SF_g = effFile.Get("h_SF_g1")
+        h_SF_g = effFileSFg.Get("h_MHT")
         h_trig_eb = effFile.Get("h_trig_eb")
         h_trig_ec = effFile.Get("h_trig_ec")
-        effWeights = "("+str(h_SF_g.GetBinContent(1))+")*( (Photons_isEB==1)*((MHT<300)*"+str(h_trig_eb.GetBinContent(1))+"+(MHT>=300&&MHT<350)*"+str(h_trig_eb.GetBinContent(2))+"+(MHT>=350&&MHT<500)*"+str(h_trig_eb.GetBinContent(3))+"+(MHT>=500&&MHT<750)*"+str(h_trig_eb.GetBinContent(4))+"+(MHT>=750)*"+str(h_trig_eb.GetBinContent(5))+")+(Photons_isEB==0)*((MHT<300)*"+str(h_trig_ec.GetBinContent(1))+"+(MHT>=300&&MHT<350)*"+str(h_trig_ec.GetBinContent(2))+"+(MHT>=350&&MHT<500)*"+str(h_trig_ec.GetBinContent(3))+"+(MHT>=500&&MHT<750)*"+str(h_trig_ec.GetBinContent(4))+"+(MHT>=750)*"+str(h_trig_ec.GetBinContent(5))+"))"
+        effWeights = "((MHT<400)*"+str(h_SF_g.GetBinContent(1))+"+(MHT>=400&&MHT<500)*"+str(h_SF_g.GetBinContent(2))+"+(MHT>=500&&MHT<600)*"+str(h_SF_g.GetBinContent(3))+"+(MHT>=600&&MHT<700)*"+str(h_SF_g.GetBinContent(4))+"+(MHT>=700&&MHT<800)*"+str(h_SF_g.GetBinContent(5))+"+(MHT>=800&&MHT<900)*"+str(h_SF_g.GetBinContent(6))+"+(MHT>=900&&MHT<1000)*"+str(h_SF_g.GetBinContent(7))+"+(MHT>=1000&&MHT<1100)*"+str(h_SF_g.GetBinContent(8))+"+(MHT>=1100&&MHT<1200)*"+str(h_SF_g.GetBinContent(9))+"+(MHT>=1200)*"+str(h_SF_g.GetBinContent(10))+")*( (Photons_isEB==1)*((MHT<300)*"+str(h_trig_eb.GetBinContent(1))+"+(MHT>=300&&MHT<350)*"+str(h_trig_eb.GetBinContent(2))+"+(MHT>=350&&MHT<500)*"+str(h_trig_eb.GetBinContent(3))+"+(MHT>=500&&MHT<750)*"+str(h_trig_eb.GetBinContent(4))+"+(MHT>=750)*"+str(h_trig_eb.GetBinContent(5))+")+(Photons_isEB==0)*((MHT<300)*"+str(h_trig_ec.GetBinContent(1))+"+(MHT>=300&&MHT<350)*"+str(h_trig_ec.GetBinContent(2))+"+(MHT>=350&&MHT<500)*"+str(h_trig_ec.GetBinContent(3))+"+(MHT>=500&&MHT<750)*"+str(h_trig_ec.GetBinContent(4))+"+(MHT>=750)*"+str(h_trig_ec.GetBinContent(5))+"))"
 
     return effWeights
 
-def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning=None, extraCuts=None, nJetBin=None, bJetBin=None, kinBin=None, dphiCut=None, applyMassCut=None, applyPtCut=None, applyHTCut=None, applyMHTCut=None, applyNJetsCut=None, doLumi=None, removeZkfactor=None, doNoisy=None, doProof=None, treeLoc=None, applyEffs=None, treeName=None, applySF=None, applyPuWeight=None):
+def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning=None, extraCuts=None, nJetBin=None, bJetBin=None, kinBin=None, dphiCut=None, applyMassCut=None, applyPtCut=None, applyHTCut=None, applyMHTCut=None, applyNJetsCut=None, doLumi=None, removeZkfactor=None, doNoisy=None, doProof=None, treeLoc=None, applyEffs=None, treeName=None, applySF=None, applyPuWeight=None,extraWeight=None):
 
     ###############################################################################        
     # set default parameters
@@ -1288,28 +1709,32 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
     if(applyNJetsCut==None):
         applyNJetsCut=False
     if(dist=='HT' or "min(HT" in dist):
+        if(nBins!=None):
+            doVarBinning=False
         if(doVarBinning==None):
             doVarBinning=True
         if(applyHTCut==True):
             if(distRange==None):
-                distRange=[250,2500]
+                distRange=[300,3300]
             if(nBins==None):
                 nBins=14
             if(binning==None):
                 binning=[300.,350.,400.,450,500.,550.,650.,750.,850.,950.,1050,1150.,1250,1750.]
         elif(applyHTCut==False):
             if(distRange==None):
-                distRange=[200,2500]
+                distRange=[200,3200]
             if(nBins==None):
                 nBins=14
             if(binning==None):
                 binning=[250.,300.,400.,500.,600.,700.,800.,900.,1000.,1100.,1200.,1300.,1500.,2500.]
     if(dist=='MHT' or "min(MHT" in dist):
+        if(nBins!=None):
+            doVarBinning=False
         if(doVarBinning==None):
             doVarBinning=True
         if(applyMHTCut==True):
             if(distRange==None):
-                distRange=[250,1000]
+                distRange=[300,2300]
             if(nBins==None):
                 nBins=7
             if(binning==None):
@@ -1318,7 +1743,7 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
                 nBins = len(binning)
         if(applyMHTCut==False):
             if(distRange==None):
-                distRange=[100,1000]
+                distRange=[200,2200]
             if(nBins==None):
                 nBins=8
             if(binning==None):
@@ -1326,6 +1751,8 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
             else:
                 nBins = len(binning)
     if(dist=='ZCandidates.Pt()'  or "min(ZCandidates.Pt()" in dist):
+        if(nBins!=None):
+            doVarBinning=False
         if(doVarBinning==None):
             doVarBinning=True
         if(distRange==None):
@@ -1389,7 +1816,7 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
     ## end distribution binning 
     ###############################################################################        
     if(doLumi==None):
-        doLumi = 24.5
+        doLumi = 36.1
     if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
        removeZkfactor=True
     elif(removeZkfactor==None):
@@ -1417,7 +1844,7 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
         if('LDP' not in sample):
             sample+='LDP'
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
+        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
     if(applyEffs==None):
         applyEffs=False
     if(treeName==None):
@@ -1461,8 +1888,18 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
 
     cutCode = {
         'sig' : 'sig',
+        'T1bbbb' : 'sig',
+        'T1qqqq' : 'sig',
+        'T1tttt' : 'sig',
         'zinv' : 'sig',
         'top' : 'sig',
+        'topW' : 'sig',
+        'topWsle' : 'sle',
+        'topWslm' : 'slm',
+        'topsle' : 'sle',
+        'topslm' : 'slm',
+        'wjetssle' : 'sle',
+        'wjetsslm' : 'slm',
         'qcd' : 'sig',
         'wjets' : 'sig',
         'other' : 'sig',
@@ -1495,13 +1932,13 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
         'gjetsqcd' : 'photonqcd',
     }
     if(sample == 'zmm'):
-        trig = (21, 22, 28, 17)
+        trig = (22, 23, 29, 17)
     elif(sample == 'zee'):
         trig = (6, 7, 12, 3)
     elif(sample == 'zll'):
-        trig = (21, 22, 28, 17, 6, 7, 12, 3)
+        trig = (22, 23, 29, 17, 6, 7, 12, 3)
     elif(sample == 'photon'):
-        trig = 50
+        trig = 51
     elif(sample == 'sig'):
         trig = (29,33)
     else:
@@ -1519,7 +1956,7 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
     if(('IDP' in sample) or ('LDP' in sample)):
         sample = sample[:-3]
 
-    cuts = getCuts(cutCode[sample], nJetBin, bJetBin, kinBin, trig, dphiCut, extraCuts, applyMassCut, applyPtCut, applyHTCut, applyMHTCut, applyNJetsCut, applySF, applyPuWeight=applyPuWeight)
+    cuts = getCuts(cutCode[sample], nJetBin, bJetBin, kinBin, trig, dphiCut, extraCuts, applyMassCut, applyPtCut, applyHTCut, applyMHTCut, applyNJetsCut, applySF, applyPuWeight=applyPuWeight,extraWeight=extraWeight)
 
     #################################################################################
     # determine sample cut code for getCuts, trigger, and additional filters/cuts
@@ -1599,7 +2036,7 @@ def getRemovedBins(njRange=None, nbRange=None, kinRange=None, njSplit=None):
 # 25 ttZ->nunu
 # 30 All bg MC
 
-def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, removeZkfactor=None, doNoisy=None, doProof=None, dphiCut=None, treeLoc=None, applyEffs=None, treeName=None, applyMassCut=None, applyPtCut=None, applyHTCut=None, applyMHTCut=None, applyNJetsCut=None, applySF=None, extraCuts=None, doStandalone=None, njSplit=None, applyPuWeight=None):
+def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, removeZkfactor=None, doNoisy=None, doProof=None, dphiCut=None, treeLoc=None, applyEffs=None, treeName=None, applyMassCut=None, applyPtCut=None, applyHTCut=None, applyMHTCut=None, applyNJetsCut=None, applySF=None, extraCuts=None, doStandalone=None, njSplit=None, applyPuWeight=None, extraWeight=None):
 
     # timer
     start_time = time.time()
@@ -1632,7 +2069,7 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
     elif(type(kinRange) is int):
         kinRange = range(kinRange,kinRange+1)
     if(doLumi==None):
-        doLumi = 24.5
+        doLumi = 36.1
     if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
        removeZkfactor=True
     elif(removeZkfactor==None):
@@ -1652,7 +2089,7 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
         if('LDP' not in sample):
             sample+='LDP'
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
+        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
     if(applyEffs==None):
         applEffs=False
     if(treeName==None):
@@ -1663,6 +2100,7 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
         applyPuWeight=False
     if(extraCuts==None):
         extraCuts=""
+
     ###############################################################################        
     # end set default parameters
     ###############################################################################        
@@ -1707,8 +2145,17 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
 
     cutCode = {
         'sig' : 'sig',
+        'T1bbbb' : 'sig',
+        'T1qqqq' : 'sig',
+        'T1tttt' : 'sig',
         'zinv' : 'sig',
-        'top' : 'sig',
+        'topW' : 'sig',
+        'topWsle' : 'sle',
+        'topWslm' : 'slm',
+        'topsle' : 'sle',
+        'topslm' : 'slm',
+        'wjetssle' : 'sle',
+        'wjetsslm' : 'slm',
         'qcd' : 'sig',
         'qcdIDP' : 'sig',
         'zinvIDP' : 'sig',
@@ -1744,13 +2191,13 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
     }
 
     if(sample == 'zmm'):
-        trig = (21, 22, 28, 17)
+        trig = (22, 23, 29, 17)
     elif(sample == 'zee'):
         trig = (6, 7, 12, 3)
     elif(sample == 'zll'):
-        trig = (21, 22, 28, 17, 6, 7, 12, 3)
+        trig = (22, 23, 29, 17, 6, 7, 12, 3)
     elif(sample == 'photon'):
-        trig = 50
+        trig = 51
     elif(sample == 'sig'):
         trig = (29,33)
     else:
@@ -1794,7 +2241,7 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
                 if(uncutBin in avoidBins):
                     continue
 
-                cuts = getCuts(cutCode[sample], nj, nb, kin, trig, dphiCut, ExtraFilters, applyMassCut, applyPtCut, applyHTCut, applyMHTCut, applyNJetsCut, applySF,njSplit=njSplit,applyPuWeight=applyPuWeight)
+                cuts = getCuts(cutCode[sample], nj, nb, kin, trig, dphiCut, ExtraFilters, applyMassCut, applyPtCut, applyHTCut, applyMHTCut, applyNJetsCut, applySF,njSplit=njSplit,applyPuWeight=applyPuWeight,extraWeight=extraWeight)
                 if(applyEffs):
                     cuts*=getEffWeights(sample)
 
@@ -2576,7 +3023,7 @@ def getRatioGraph(numHist,denomHist,ratioHist=None,doFlip=None,cg=None,doClopper
 
     return g_r
 
-def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=None, xTitle=None, yTitle=None, doCMSlumi=None, iPos=None, iPeriod=None, extraText=None, ratioTitle=None, ratioMin=None, ratioMax=None, doLogy=None, doFlip=None, doDiff=None, doPull=None, makeLeg=None, legList=None, legCoords=None, textCoords=None, canvasSize=None, canvasName=None, numColors=None, denomColor=None, numMarkers=None, denomMarker=None, markerSize=None, lineWidth=None, numDrawStyles=None, denomDrawStyle=None, drawErrorBand=None, stackColors=None, axisTitleSize=None, drawVerticalLines=None, drawHorizontalLine=None, statBox=None, drawText=None, text=None, setMax=None, setMin=None, doClosureStyle=None,errorBandColor=None,errorBandFillStyle=None,legHeader=None,nDivRatio=None,doNumFill=None, hLineVal=None, hLineColors=None,nDivX=None,ratioGridx=None,ratioGridy=None,topGridx=None,topGridy=None):
+def getPlotAndRatio(numHists, denomHists=None, bottomPlots=None, doStack=None, Title=None, xTitle=None, yTitle=None, doCMSlumi=None, iPos=None, iPeriod=None, extraText=None, ratioTitle=None, ratioMin=None, ratioMax=None, doLogy=None, doFlip=None, doDiff=None, doPull=None, makeLeg=None, legList=None, legCoords=None, textCoords=None, canvasSize=None, canvasName=None, numColors=None, denomColor=None, numMarkers=None, denomMarker=None, markerSize=None, lineWidth=None, numDrawStyles=None, denomDrawStyle=None, drawErrorBand=None, stackColors=None, axisTitleSize=None, drawVerticalLines=None, drawHorizontalLine=None, statBox=None, drawText=None, text=None, setMax=None, setMin=None, doClosureStyle=None,errorBandColor=None,errorBandFillStyle=None,legHeader=None,nDivRatio=None,doNumFill=None, hLineVal=None, hLineColors=None,nDivX=None,ratioGridx=None,ratioGridy=None,topGridx=None,topGridy=None,doRatio=None,numFillStyles=None,numFillColors=None):
 
     ROOT.gROOT.Reset()
 
@@ -2587,6 +3034,10 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     #####################################################################
     # set defaults and initialize 
     #####################################################################
+    if(denomHists==None):
+        doRatio=False
+    if(doRatio==None):
+        doRatio=True
     if(doClosureStyle==None):
         doClosureStyle=False
     if type(numHists) is ROOT.TH1F:
@@ -2611,7 +3062,10 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     if(iPos==None):
         iPos=0
     if(doLogy==None):
-        doLogy=True
+        if(doRatio==False):
+            doLogy=False
+        else:
+            doLogy=True
     if(doDiff==None):
         doDiff = False
     if(doDiff==True and ratioTitle==None):
@@ -2645,7 +3099,10 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     if(canvasName==None):
         canvasName = "canvas"
     if(numColors==None):
-        numColors = [1,4,2,8,12,7,5,13,46,41,6]
+        if(doRatio==False):
+            numColors = [4,8,2,1,12,7,5,13,46,41,6]
+        else:
+            numColors = [1,4,2,8,12,7,5,13,46,41,6]
     if(denomColor==None):
         denomColor=4
     if(numMarkers==None):
@@ -2664,7 +3121,12 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     if(denomDrawStyle=="HIST"):
         denomMarker=1
     if(numDrawStyles==None):
-        numDrawStyles=["e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0"]
+        if(doRatio==False):
+            numDrawStyles=["HIST","HIST","HIST","HIST","HIST","HIST","HIST","HIST","HIST"]
+        else:
+            numDrawStyles=["e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0","e0p X0"]
+    if(numFillStyles==None):
+        numFillStyles=[3001,3001,3001,3001,3001,3001]
     if(drawErrorBand==None):
         drawErrorBand=True
     if(stackColors==None):
@@ -2743,10 +3205,14 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
         legHeader=""
     if(doNumFill==None):
         doNumFill=False
+    if(numFillColors==None):
+        numFillColors = numColors
     if(hLineColors==None):
         hLineColors = [4,2,1,1]
     if(type(hLineColors) is not list):
         hLineColors=[hLineColors]
+
+        
     #####################################################################
     # end set defaults
     #####################################################################
@@ -2823,91 +3289,92 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     # bottom plot
     #####################################################################
 
-    pad_1 = ROOT.TPad("pad_1","pad_1",0.00,0.01,0.99,0.32)
-    pad_1.Draw()
-    pad_1.cd()
-    pad_1.SetTopMargin(0.01)
-    pad_1.SetBottomMargin(0.4)
-    pad_1.SetRightMargin(0.1)
-    pad_1.SetGridx(ratioGridx)
-    pad_1.SetGridy(ratioGridy)
+    if(doRatio):
+        pad_1 = ROOT.TPad("pad_1","pad_1",0.00,0.01,0.99,0.32)
+        pad_1.Draw()
+        pad_1.cd()
+        pad_1.SetTopMargin(0.01)
+        pad_1.SetBottomMargin(0.4)
+        pad_1.SetRightMargin(0.1)
+        pad_1.SetGridx(ratioGridx)
+        pad_1.SetGridy(ratioGridy)
 
-    for i in range(len(numHistsRatio)):
-        numHistsRatio[i].SetMinimum(ratioMin)
-        numHistsRatio[i].SetMaximum(ratioMax)
-        numHistsRatio[i].SetTitle(";"+xTitle+";"+ratioTitle)
-        numHistsRatio[i].GetXaxis().SetTitleSize((2*axisTitleSize))
-        numHistsRatio[i].GetXaxis().SetTitleOffset(0.043/(0.5*axisTitleSize))
-        numHistsRatio[i].GetXaxis().SetLabelSize(1.5*axisTitleSize)
-        numHistsRatio[i].GetYaxis().SetLabelSize(1.5*axisTitleSize)
-        numHistsRatio[i].GetYaxis().SetTitleSize(2*axisTitleSize)
-        numHistsRatio[i].GetYaxis().SetTitleOffset(0.033/(1.0*axisTitleSize))
-        numHistsRatio[i].GetYaxis().SetNdivisions(nDivRatio)
-        numHistsRatio[i].GetXaxis().SetNdivisions(nDivX)
-        numHistsRatio[i].SetLineWidth(lineWidth)
-        numHistsRatio[i].SetLineColor(numColors[i])
-        numHistsRatio[i].SetMarkerStyle(numMarkers[i])
-        numHistsRatio[i].SetMarkerSize(markerSize)
-        numHistsRatio[i].SetMarkerColor(numColors[i])
-        if(doNumFill):
-            if('p' not in numDrawStyles[i]):
-               numHistsRatio[i].SetFillColor(numColors[i])
-               numHistsRatio[i].SetFillStyle(3004)
-               numHistsRatio[i].SetMarkerSize(0.001)
-               numHistsRatio[i].SetMarkerStyle(1)
-               numHistsRatio[i].SetLineWidth(0)
-        if(doClosureStyle==True):
-            lineAtOne = numHistsRatio[len(numHistsRatio)-1].Clone()
-            for j in range(1,lineAtOne.GetNbinsX()+1):
-                lineAtOne.SetBinContent(j,1)
-                lineAtOne.SetBinError(j,0.)
-            numHistsRatio[len(numHistsRatio)-1].SetMarkerSize(0.001)
-            numHistsRatio[len(numHistsRatio)-1].SetMarkerStyle(1)
-            numHistsRatio[len(numHistsRatio)-1].SetFillColor(errorBandColor)
-            numHistsRatio[len(numHistsRatio)-1].SetFillStyle(errorBandFillStyle)
-            numHistsRatio[len(numHistsRatio)-1].SetLineColor(errorBandColor)
-            numHistsRatio[len(numHistsRatio)-1].SetMarkerColor(errorBandColor)
-            if(i==0):
-                numHistsRatio[len(numHistsRatio)-1].Draw("e2")
-                lineAtOne.Draw("hist same")
-            ROOT.SetOwnership(lineAtOne, 0)
-            if(i is not (len(numHistsRatio)-1)):
-               numHistsRatio[i].SetStats(statBox)
-               numHistsRatio[i].Draw("same"+numDrawStyles[i])
-        elif(type(numHistsRatio[i]) is not ROOT.TGraphAsymmErrors):
-            numHistsRatio[i].SetStats(statBox)
-            #numHistsRatio[i].Draw("same"+numDrawStyles[i])
-            numHistsRatio[i].Draw(numDrawStyles[i]+'same')
-        else:
-            numHistsRatio[i].GetXaxis().SetLimits(denomHist.GetBinLowEdge(1),denomHist.GetBinLowEdge(denomHist.GetNbinsX()+1))
-            numHistsRatio[i].Draw('ap same')
+        for i in range(len(numHistsRatio)):
+            numHistsRatio[i].SetMinimum(ratioMin)
+            numHistsRatio[i].SetMaximum(ratioMax)
+            numHistsRatio[i].SetTitle(";"+xTitle+";"+ratioTitle)
+            numHistsRatio[i].GetXaxis().SetTitleSize((2*axisTitleSize))
+            numHistsRatio[i].GetXaxis().SetTitleOffset(0.043/(0.5*axisTitleSize))
+            numHistsRatio[i].GetXaxis().SetLabelSize(1.5*axisTitleSize)
+            numHistsRatio[i].GetYaxis().SetLabelSize(1.5*axisTitleSize)
+            numHistsRatio[i].GetYaxis().SetTitleSize(2*axisTitleSize)
+            numHistsRatio[i].GetYaxis().SetTitleOffset(0.033/(1.0*axisTitleSize))
+            numHistsRatio[i].GetYaxis().SetNdivisions(nDivRatio)
+            numHistsRatio[i].GetXaxis().SetNdivisions(nDivX)
+            numHistsRatio[i].SetLineWidth(lineWidth)
+            numHistsRatio[i].SetLineColor(numColors[i])
+            numHistsRatio[i].SetMarkerStyle(numMarkers[i])
+            numHistsRatio[i].SetMarkerSize(markerSize)
+            numHistsRatio[i].SetMarkerColor(numColors[i])
+            if(doNumFill):
+                if('p' not in numDrawStyles[i]):
+                    numHistsRatio[i].SetFillColor(numFillColors[i])
+                    numHistsRatio[i].SetFillStyle(numFillStyles[i])
+                    numHistsRatio[i].SetMarkerSize(0.001)
+                    numHistsRatio[i].SetMarkerStyle(1)
+                    numHistsRatio[i].SetLineWidth(0)
+            if(doClosureStyle==True):
+                lineAtOne = numHistsRatio[len(numHistsRatio)-1].Clone()
+                for j in range(1,lineAtOne.GetNbinsX()+1):
+                    lineAtOne.SetBinContent(j,1)
+                    lineAtOne.SetBinError(j,0.)
+                numHistsRatio[len(numHistsRatio)-1].SetMarkerSize(0.001)
+                numHistsRatio[len(numHistsRatio)-1].SetMarkerStyle(1)
+                numHistsRatio[len(numHistsRatio)-1].SetFillColor(errorBandColor)
+                numHistsRatio[len(numHistsRatio)-1].SetFillStyle(errorBandFillStyle)
+                numHistsRatio[len(numHistsRatio)-1].SetLineColor(errorBandColor)
+                numHistsRatio[len(numHistsRatio)-1].SetMarkerColor(errorBandColor)
+                if(i==0):
+                    numHistsRatio[len(numHistsRatio)-1].Draw("e2")
+                    lineAtOne.Draw("hist same")
+                ROOT.SetOwnership(lineAtOne, 0)
+                if(i is not (len(numHistsRatio)-1)):
+                   numHistsRatio[i].SetStats(statBox)
+                   numHistsRatio[i].Draw("same"+numDrawStyles[i])
+            elif(type(numHistsRatio[i]) is not ROOT.TGraphAsymmErrors):
+                numHistsRatio[i].SetStats(statBox)
+                #numHistsRatio[i].Draw("same"+numDrawStyles[i])
+                numHistsRatio[i].Draw(numDrawStyles[i]+'same')
+            else:
+                numHistsRatio[i].GetXaxis().SetLimits(denomHist.GetBinLowEdge(1),denomHist.GetBinLowEdge(denomHist.GetNbinsX()+1))
+                numHistsRatio[i].Draw('ap same')
             
 
     # draw lines 
 
-    horizontalLine = []
-    hLineWidths = [1,2,1,1]
-    hLineStyles = [1,2,1,1]
-    for i in range(len(hLineVal)):
-        horizontalLine.append(ROOT.TLine(denomHist.GetBinLowEdge(1),hLineVal[i],denomHist.GetBinLowEdge(denomHist.GetNbinsX()+1),hLineVal[i]))
-        horizontalLine[i].SetLineWidth(hLineWidths[i])
-        horizontalLine[i].SetLineStyle(hLineStyles[i])
-        horizontalLine[i].SetLineColor(hLineColors[i])
-        if(drawHorizontalLine==True):
-            horizontalLine[i].Draw()
-        ROOT.SetOwnership(horizontalLine[i],0)
+        horizontalLine = []
+        hLineWidths = [1,2,1,1]
+        hLineStyles = [1,2,1,1]
+        for i in range(len(hLineVal)):
+            horizontalLine.append(ROOT.TLine(denomHist.GetBinLowEdge(1),hLineVal[i],denomHist.GetBinLowEdge(denomHist.GetNbinsX()+1),hLineVal[i]))
+            horizontalLine[i].SetLineWidth(hLineWidths[i])
+            horizontalLine[i].SetLineStyle(hLineStyles[i])
+            horizontalLine[i].SetLineColor(hLineColors[i])
+            if(drawHorizontalLine==True):
+                horizontalLine[i].Draw()
+            ROOT.SetOwnership(horizontalLine[i],0)
         
-    verticalLineB = []
-    if(drawVerticalLines==True):
-        for i in range(1,n):
-            verticalLineB.append(ROOT.TLine(i*seg+0.5,ratioMin,i*seg+0.5,ratioMax))
-            verticalLineB[i-1].SetLineWidth(3)
-            verticalLineB[i-1].SetLineStyle(2)
-            verticalLineB[i-1].Draw()
+        verticalLineB = []
+        if(drawVerticalLines==True):
+            for i in range(1,n):
+                verticalLineB.append(ROOT.TLine(i*seg+0.5,ratioMin,i*seg+0.5,ratioMax))
+                verticalLineB[i-1].SetLineWidth(3)
+                verticalLineB[i-1].SetLineStyle(2)
+                verticalLineB[i-1].Draw()
     
-    pad_1.Draw()
-    pad_1.Update()
-    canvas.Update()
+        pad_1.Draw()
+        pad_1.Update()
+        canvas.Update()
     #####################################################################
     # end bottom plot
     #####################################################################
@@ -2915,8 +3382,11 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     #####################################################################
     # top plot
     #####################################################################
-    canvas.cd()
-    pad_2 = ROOT.TPad("pad_2","pad_2",0.00,0.33,0.99,0.99)
+    if(doRatio):
+        canvas.cd()
+        pad_2 = ROOT.TPad("pad_2","pad_2",0.00,0.33,0.99,0.99)
+    else:
+        pad_2 = ROOT.TPad("pad_2","pad_2",0.00,0.01,0.99,0.99)
     pad_2.Draw()
     pad_2.cd()
     pad_2.SetTopMargin(0.1)
@@ -2927,7 +3397,11 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
 
     denomHist.SetStats(statBox)
     denomHist.SetTitleSize(axisTitleSize)
-    denomHist.GetXaxis().SetTitleSize(0.)
+    if(doRatio):
+        denomHist.GetXaxis().SetTitleSize(0.)
+    else:
+        denomHist.GetXaxis().SetTitleSize((2*axisTitleSize))
+        denomHist.GetXaxis().SetTitleOffset(0.043/(0.5*axisTitleSize))
     denomHist.GetYaxis().SetTitleSize(axisTitleSize)
     denomHist.GetYaxis().SetTitleOffset(0.033/(0.5*axisTitleSize))
     denomHist.SetTitle(Title+";;"+yTitle)
@@ -2950,8 +3424,12 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
             hs.Add(denomHists[i])
         hs.Draw("HIST")
         hs.GetHistogram().SetTitleSize(axisTitleSize)
-        hs.GetHistogram().GetXaxis().SetTitleSize(0.)
-        hs.GetHistogram().GetXaxis().SetLabelSize(0.)
+        if(doRatio):
+            hs.GetHistogram().GetXaxis().SetTitleSize(0.)
+            hs.GetHistogram().GetXaxis().SetLabelSize(0.)
+        else:
+            hs.GetXaxis().SetTitleSize((2*axisTitleSize))
+            hs.GetXaxis().SetTitleOffset(0.043/(0.5*axisTitleSize))
         hs.GetHistogram().GetYaxis().SetTitleSize(axisTitleSize)
         hs.GetHistogram().GetYaxis().SetTitleOffset(0.033/(0.5*axisTitleSize))
         hs.GetHistogram().SetTitle(Title+";;"+yTitle)
@@ -3089,11 +3567,13 @@ def getPlotAndRatio(numHists, denomHists, bottomPlots=None, doStack=None, Title=
     ROOT.SetOwnership(hs, 0)
     ROOT.SetOwnership(leg, 0)
     ROOT.SetOwnership(pt, 0)
-    ROOT.SetOwnership(pad_1,0)
+    if(doRatio):
+        ROOT.SetOwnership(pad_1,0)
     ROOT.SetOwnership(pad_2,0)
 
-    for line in verticalLineB:
-        ROOT.SetOwnership(line, 0)
+    if(doRatio):
+        for line in verticalLineB:
+            ROOT.SetOwnership(line, 0)
     for line in verticalLineT:
         ROOT.SetOwnership(line, 0)
     for hist in numHistsRatio:
@@ -3216,7 +3696,7 @@ def getDoubleRatioGraph(dist, binning=None, extraCuts=None, nJetBin=None, bJetBi
         do20=False
     if(do20):
         if(doLumi==None):
-            doLumi=24.50
+            doLumi=36.10
     if(dist=='HT'):
         if(binning==None):
             #binning=[300,400,500.,650.,800.,1000.,1200.,1600.]
@@ -3240,7 +3720,7 @@ def getDoubleRatioGraph(dist, binning=None, extraCuts=None, nJetBin=None, bJetBi
         if(binning==None):
             binning=[-0.5,0.5,1.5,2.5,3.5]
     if(doLumi==None):
-        doLumi = 24.5
+        doLumi = 36.1
     if(removeZkfactor==None):
        removeZkfactor=True
     if(doNoisy==None):
@@ -3268,7 +3748,7 @@ def getDoubleRatioGraph(dist, binning=None, extraCuts=None, nJetBin=None, bJetBi
     if(dphiCut==None):
         dphiCut = 'sig'
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV10"
+        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
     if(applyEffs==None):
         applyEffs=True
     if(treeName==None):
@@ -3884,7 +4364,7 @@ def getZmassFitPlot(fitFunc=None, dataSet=None, mcSet=None, plotMC=None, doDiMu=
     if(do20):
         sampleSuffix='20'
         if(doLumi==None):
-            doLumi=24.50
+            doLumi=36.10
         if(extraText==None):
             extraText="Simulation"
     if(text==None):
@@ -3922,7 +4402,7 @@ def getZmassFitPlot(fitFunc=None, dataSet=None, mcSet=None, plotMC=None, doDiMu=
     if(doVarBinning==None):
         doVarBinning=False
     if(doLumi==None):
-        doLumi=24.5
+        doLumi=36.1
     if(binning==None):
         binning=[60.,70.,80.,90.,100.,110.,120.]
     if(extraCuts==None):
@@ -4229,6 +4709,7 @@ def getZmassFitPlot(fitFunc=None, dataSet=None, mcSet=None, plotMC=None, doDiMu=
                     mcSet[j].Draw("HIST")
                     mcSet[j].GetXaxis().SetTitle(xTitle)
                     mcSet[j].GetYaxis().SetTitle(yTitle)
+                    mcSet[j].GetYaxis().SetTitleOffset(1.3)
                     if(data[key].GetMaximum()>mcSet[j].GetMaximum()):
                         mcSet[j].SetMaximum(1.25*data[key].GetMaximum())
                     ROOT.SetOwnership(mcSet[j], 0)

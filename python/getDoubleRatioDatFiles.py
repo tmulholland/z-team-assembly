@@ -137,3 +137,4 @@ for sample in doSample:
             print str(dr)+" | "+str(edr)+" | "+str(EdrUp)+" | "+str(EdrDown)+" | "+str(pur)+" | "+str(purError/pur)+" | "+str(trig)+" | "+str(trigError/trig)+" | "+str(lepSF)+" | "+str(eLepSF)+" | "+str(btagSF)+" | "+str(btagSFerror) + " | "
             Bin+=1
 
+    print "\a"
