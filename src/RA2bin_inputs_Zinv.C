@@ -471,11 +471,11 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	gEtrgErrEff[ijet][ikin] = fabs( gEtrgErr[ijet][ikin] - gEtrgErrAv / gEtrgAv );  // Frac. error on gEtrg/<gEtrg>
 	gFdirErrEff[ijet][ikin] = fabs( gFdirErr[ijet][ikin] - gFdirErrAv / gFdirAv );  // Frac. error on gFdir/<gFdir>
 	gPurErrEff[ijet][ikin] = fabs( gPurErr[ijet][ikin] - gPurErrAv / gPurAv );  // Frac. error on gPur/<gPur>
-        cout << "Var (err nominal, eff): "
-             << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
-	     << " gFdir (" << gFdirErr[ijet][ikin] << ", " << gFdirErrEff[ijet][ikin] << ") "
-             << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
-	     << endl;
+        // cout << "Var (err nominal, eff): "
+        //      << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
+	//      << " gFdir (" << gFdirErr[ijet][ikin] << ", " << gFdirErrEff[ijet][ikin] << ") "
+        //      << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
+	//      << endl;
 
 	hzvvgJNobs->SetBinContent(bin, Ngobs[ijet][ikin]);
 	Ngobs[ijet][ikin] > 0 ? hgJstat->SetBinContent(bin, 1+1/Sqrt(Ngobs[ijet][ikin])) : hgJstat->SetBinContent(bin, 1+0);
@@ -509,7 +509,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	//      << " " << hDYvalue->GetXaxis()->GetBinLabel(bin)
 	//      << "  " << hDYvalue->GetBinContent(bin) << endl;
 
-	Float_t transferFactor =  ZgDR[ijet][ikin] * ZgR[ijet][ikin] * gEtrg[ijet][ikin] * gSF[ijet][ikin] * gFdir[ijet][ikin] * gPur[ijet][ikin] * DYvalues[ijet][ib][ikinDY];
+	Float_t transferFactor =  ZgDR[ijet][ikin] * ZgR[ijet][ikin] / gEtrg[ijet][ikin] / gSF[ijet][ikin] * gFdir[ijet][ikin] * gPur[ijet][ikin] * DYvalues[ijet][ib][ikinDY];
 	// cout << Ngobs[ijet][ikin] << " " << ZgR[ijet][ikin] << " " << gFdir[ijet][ikin] << " "
 	// << gPur[ijet][ikin] << " " << DYvalues[ijet][ib][ikin] << " " << ZgDR[ijet][ikin] << endl;
 	Float_t thisNgobs = Ngobs[ijet][ikin] > 0 ? Ngobs[ijet][ikin] : 1.0;
@@ -548,10 +548,10 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				       + Power(DYsysNjLow[ijet][ib][ikinDY], 2)
 				       + Power(DYsysKin[ijet][ib][ikinDY], 2)
 				       + Power(DYsysPur[ijet][ib][ikinDY], 2));
-	// if (bin == 1) cout << endl;
-	// cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
-	//      << " - " << sysLow[bin-1] << "  TF*Ngobs = "
-	//      << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
+	if (bin == 1) cout << endl;
+	cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
+	     << " - " << sysLow[bin-1] << "  TF*Ngobs = "
+	     << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
 	if (Ngobs[ijet][ikin] > 0) {
 	  ZinvBGpred->SetBinContent(bin, ZinvValue);
 	  ZinvBGsysUp->SetBinContent(bin, sysUp[bin-1]);
