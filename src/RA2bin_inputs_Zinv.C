@@ -454,7 +454,18 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   ofstream tableFile;  tableFile.open("table_for_AN.txt");
   char buf[256];
 
+  // For AN table
+  const char* tbLabelNj[] = {
+    (char*)("\\njets 2"), (char*)("\\njets 3-4"), (char*)("\\njets 5-6"),
+    (char*)("\\njets 7-8"), (char*)("\\njets $\\ge9$")
+  };
+  const char* tbLabelKin[] = {
+    (char*)("MHT\\_HT\\_1"), (char*)("MHT\\_HT\\_2"), (char*)("MHT\\_HT\\_3"), (char*)("MHT\\_HT\\_4"), (char*)("MHT\\_HT\\_5"),
+    (char*)("MHT\\_HT\\_6"), (char*)("MHT\\_HT\\_7"), (char*)("MHT\\_HT\\_8"), (char*)("MHT\\_HT\\_9"), (char*)("MHT\\_HT\\_10")
+  };
+    
   // Fill histograms
+  Int_t binzb = 0;
   bin = 0;
   for (Int_t ijet=0; ijet<MaxNjets; ++ijet) {
     for (Int_t ib=0; ib<MaxNb; ++ib) {
@@ -564,11 +575,15 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 
 	if (ib == 0) {
           //  Write out LaTex for AN table
-	  if (ikin == 0 || (ijet > 2 && ikin == 1)) tableFile << endl;
-	  sprintf(buf, "%5.0f & %5.0f & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
+	  binzb++;
+	  Float_t ZgRcorr = ZgR[ijet][ikin] / gEtrg[ijet][ikin] / gSF[ijet][ikin];
+	  Float_t ZgRsys = ZgRcorr * Sqrt(Power(gEtrgErr[ijet][ikin], 2) + Power(gSFerr[ijet][ikin], 2));
+	  if (ikin == 0 || (ijet > 2 && ikin == 1)) tableFile << "\\hline" << endl;
+	  sprintf(buf, "%d %s, %s & %5.0f & %5.0f & $%5.3f\\pm%5.3f\\pm%5.3f$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
+		  binzb,
+		  tbLabelNj[ijet], tbLabelKin[ikin],
 		  NgobsEB[ijet][ikin], NgobsEE[ijet][ikin],
-		  ZgR[ijet][ikin], ZgR[ijet][ikin]*ZgRerr[ijet][ikin], ZgR[ijet][ikin]*gEtrgErr[ijet][ikin],
-		  ZgR[ijet][ikin]*gSFerr[ijet][ikin], 
+		  ZgRcorr, ZgRcorr*ZgRerr[ijet][ikin], ZgRsys, 
 		  ZgDR[ijet][ikin], DRscaleErr, ZgDR[ijet][ikin]*ZgDRerrUp[ijet][ikin],
 		  ZgDR[ijet][ikin]*ZgDRerrLow[ijet][ikin],
 		  ZinvValue, statErr[bin-1], sysUp[bin-1], sysLow[bin-1]);
