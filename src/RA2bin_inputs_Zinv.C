@@ -84,8 +84,12 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 		      std::vector <std::vector<Float_t> >& NgobsEE,
 		      std::vector <std::vector<Float_t> >& ZgR,
 		      std::vector <std::vector<Float_t> >& ZgRerr,
-		      std::vector <std::vector<Float_t> >& ZgRerrUp,
-		      std::vector <std::vector<Float_t> >& ZgRerrLow,
+		      std::vector <std::vector<Float_t> >& gEtrg,
+		      std::vector <std::vector<Float_t> >& gEtrgErr,
+		      std::vector <std::vector<Float_t> >& gSF,
+		      std::vector <std::vector<Float_t> >& gSFerr,
+		      std::vector <std::vector<Float_t> >& gFdir,
+		      std::vector <std::vector<Float_t> >& gFdirErr,
 		      std::vector <std::vector<Float_t> >& gPur,
 		      std::vector <std::vector<Float_t> >& gPurErr,
 		      std::vector <std::vector<Float_t> >& ZgDR,
@@ -170,10 +174,14 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector <std::vector<Float_t> > NgobsEE(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > ZgR(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > ZgRerr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
-  std::vector <std::vector<Float_t> > ZgRerrUp(MaxNjets, std::vector<Float_t>(MaxKin, 0));
-  std::vector <std::vector<Float_t> > ZgRerrLow(MaxNjets, std::vector<Float_t>(MaxKin, 0));
-  std::vector <std::vector<Float_t> > ZgRerrEffUp(MaxNjets, std::vector<Float_t>(MaxKin, 0));
-  std::vector <std::vector<Float_t> > ZgRerrEffLow(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gEtrg(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gEtrgErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gEtrgErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gSF(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gSFerr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFdir(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFdirErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFdirErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPur(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPurErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPurErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
@@ -201,8 +209,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector < std::vector <std::vector<Float_t> > >
     DYsysPur(MaxNjets, std::vector< std::vector<Float_t> >(MaxNb, std::vector<Float_t>(MaxKinDY, 0)));
   // Read gJets, DY data from files
-  if (0 != getData_gJets(dataFile_gJets, Ngobs, NgobsEB, NgobsEE, ZgR, ZgRerr, ZgRerrUp, ZgRerrLow, gPur, gPurErr,
-			 ZgDR_from_gJets, ZgDRerrUp_from_gJets, ZgDRerrLow_from_gJets)) {
+  if (0 != getData_gJets(dataFile_gJets, Ngobs, NgobsEB, NgobsEE, ZgR, ZgRerr, gEtrg, gEtrgErr, gSF,
+			 gSFerr, gFdir, gFdirErr, gPur, gPurErr, ZgDR_from_gJets,
+			 ZgDRerrUp_from_gJets, ZgDRerrLow_from_gJets)) {
     cout << "Failed to get data." << endl;
     return;
   }
@@ -215,7 +224,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
     return;
   }
 
-  Float_t gPurAv = 0, gPurErrAv = 0, NobsSum = 0, ZgRAv = 0, ZgRerrUpAv = 0, ZgRerrLowAv = 0;
+  Float_t NobsSum = 0, gEtrgAv = 0, gEtrgErrAv = 0, gFdirAv = 0, gFdirErrAv = 0, gPurAv = 0, gPurErrAv = 0;
   cout << "DRscaleErr = " << DRscaleErr << ", DY0bPurErr = " << DY0bPurErr << ", DYtrigEffErr = " << DYtrigEffErr << ", LeptonSFerr = " <<LeptonSFerr  << ", btagSFerr = " << btagSFerr << endl;
   bin = 0;
   for (Int_t ijet=0; ijet<MaxNjets; ++ijet) {
@@ -223,29 +232,31 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
       if (ijet > 2 && (ikin == 0 || ikin == 3)) continue;  // Skip high-Njet, low-HT bins
       if (MaxKin > 10 && ijet > 2 && ikin == 6) continue;  // Skip high-Njet, low-HT bins
       bin++;
-      cout << bin << "  Ngobs = " << Ngobs[ijet][ikin] << "  ZgR = " << ZgR[ijet][ikin] 
-           << "  ZgRerr = " << ZgRerr[ijet][ikin]
-           << "  ZgRerrUp = " << ZgRerrUp[ijet][ikin]
-           << "  ZgRerrLow = " << ZgRerrLow[ijet][ikin]
-           << "  gPur = " << gPur[ijet][ikin]
-           << "  gPurErr = " << gPurErr[ijet][ikin]
-           << "  ZgDR = " << ZgDR[ijet][ikin]
-           << "  ZgDRerrUp = " << ZgDRerrUp[ijet][ikin]
-           << "  ZgDRerrLow = " << ZgDRerrLow[ijet][ikin] << endl;
+      cout << bin << "  Ngobs = " << Ngobs[ijet][ikin]
+	   << "  ZgR = " << ZgR[ijet][ikin] << " (" << 100*ZgRerr[ijet][ikin]
+           << "%)  gEtrg =  " << gEtrg[ijet][ikin] << " (" << 100*gEtrgErr[ijet][ikin]
+           << "%)  gSF =  " << gSF[ijet][ikin] << " (" << 100*gSFerr[ijet][ikin]
+           << "%)  gFdir = " << gFdir[ijet][ikin] << " (" << 100*gFdirErr[ijet][ikin]
+           << "%)  gPur = " << gPur[ijet][ikin] << " (" << 100*gPurErr[ijet][ikin]
+           << "%)  ZgDR = " << ZgDR[ijet][ikin]
+	   << " (+" << 100*ZgDRerrUp[ijet][ikin] << "%, -" << 100*ZgDRerrLow[ijet][ikin] << "%)"
+	   << endl;
       NobsSum += Ngobs[ijet][ikin];
+      gEtrgAv += Ngobs[ijet][ikin]*gEtrg[ijet][ikin];
+      gEtrgErrAv += Ngobs[ijet][ikin]*gEtrgErr[ijet][ikin]*gEtrg[ijet][ikin];  // Absolute error on gEtrg
+      gFdirAv += Ngobs[ijet][ikin]*gFdir[ijet][ikin];
+      gFdirErrAv += Ngobs[ijet][ikin]*gFdirErr[ijet][ikin]*gFdir[ijet][ikin];  // Absolute error on gFdir
       gPurAv += Ngobs[ijet][ikin]*gPur[ijet][ikin];
       gPurErrAv += Ngobs[ijet][ikin]*gPurErr[ijet][ikin]*gPur[ijet][ikin];  // Absolute error on gPur
-      ZgRAv += Ngobs[ijet][ikin]*ZgR[ijet][ikin];
-      ZgRerrUpAv += Ngobs[ijet][ikin]*ZgRerrUp[ijet][ikin]*ZgR[ijet][ikin];  // Absolute upper error on ZgR
-      ZgRerrLowAv += Ngobs[ijet][ikin]*ZgRerrLow[ijet][ikin]*ZgR[ijet][ikin];  // Absolute lower error on ZgR
     }
   }
   cout << endl;
+  gEtrgAv /= NobsSum;  // Average ZgR
+  gEtrgErrAv /= NobsSum;  // Average gEtrg absolute uncertainty
+  gFdirAv /= NobsSum;  // Average gFdir
+  gFdirErrAv /= NobsSum;  // Average gFdir absolute uncertainty
   gPurAv /= NobsSum;  // Average gPur
   gPurErrAv /= NobsSum;  // Average gPur absolute uncertainty
-  ZgRAv /= NobsSum;  // Average ZgR
-  ZgRerrUpAv /= NobsSum;  // Average ZgR absolute upper uncertainty
-  ZgRerrLowAv /= NobsSum;  // Average ZgR absolute lower uncertainty
   bin = 0;
   for (Int_t ijet=0; ijet<MaxNjets; ++ijet) {
     for (Int_t ib=0; ib<MaxNb; ++ib) {
@@ -342,14 +353,26 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   TH1F *hgJZgRerr = (TH1F*)hTemplate->Clone("hgJZgRerr");
   hgJZgRerr->GetYaxis()->SetTitle("gamma+jets Z/gamma ratio error");
 
-  // The uncertainty gJZgRerrUp, Low cancels in between RZg and DR
-  TH1F *hgJZgRerrUp = (TH1F*)hCorrelTemplate->Clone("hgJZgRerrUp");
-  if (doSample == Signal) setCorrelationLabels(hgJZgRerrUp, 15);  
-  hgJZgRerrUp->GetYaxis()->SetTitle("gamma+jets Z/gamma ratio error");
+  TH1F *hgJEtrg = (TH1F*)hCorrelTemplate->Clone("hgJEtrg");
+  hgJEtrg->GetYaxis()->SetTitle("gamma+jets trigger efficiency");
 
-  TH1F *hgJZgRerrLow = (TH1F*)hCorrelTemplate->Clone("hgJZgRerrLow");
-  if (doSample == Signal) setCorrelationLabels(hgJZgRerrLow, 15);  
-  hgJZgRerrLow->GetYaxis()->SetTitle("gamma+jets Z/gamma ratio error");
+  TH1F *hzvvgJEtrgErr = (TH1F*)hCorrelTemplate->Clone("hzvvgJEtrgErr");
+  if (doSample == Signal) setCorrelationLabels(hzvvgJEtrgErr, 13);  
+  hzvvgJEtrgErr->GetYaxis()->SetTitle("gamma+jets trigger efficiency error");
+
+  TH1F *hgJSF = (TH1F*)hCorrelTemplate->Clone("hgJSF");
+  hgJSF->GetYaxis()->SetTitle("gamma+jets data/MC scale factor");
+
+  TH1F *hgJSFerr = (TH1F*)hCorrelTemplate->Clone("hgJSFerr");
+  // if (doSample == Signal) setCorrelationLabels(hgJSFerr, 15);  // Canceled by DR 
+  hgJSFerr->GetYaxis()->SetTitle("gamma+jets data/MC scale factor");
+
+  TH1F *hgJFdir = (TH1F*)hTemplate->Clone("hgJFdir");
+  hgJFdir->GetYaxis()->SetTitle("gamma+jets fragmentation factor");
+
+  TH1F *hzvvgJFdirErr = (TH1F*)hCorrelTemplate->Clone("hzvvgJFdirErr");
+  if (doSample == Signal) setCorrelationLabels(hzvvgJFdirErr, 5);  
+  hzvvgJFdirErr->GetYaxis()->SetTitle("gamma+jets fragmentation factor error");
 
   TH1F *hgJPur = (TH1F*)hTemplate->Clone("hgJPur");
   hgJPur->GetYaxis()->SetTitle("gamma+jets purity");
@@ -431,7 +454,18 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   ofstream tableFile;  tableFile.open("table_for_AN.txt");
   char buf[256];
 
+  // For AN table
+  const char* tbLabelNj[] = {
+    (char*)("\\njets 2"), (char*)("\\njets 3-4"), (char*)("\\njets 5-6"),
+    (char*)("\\njets 7-8"), (char*)("\\njets $\\ge9$")
+  };
+  const char* tbLabelKin[] = {
+    (char*)("MHT\\_HT\\_1"), (char*)("MHT\\_HT\\_2"), (char*)("MHT\\_HT\\_3"), (char*)("MHT\\_HT\\_4"), (char*)("MHT\\_HT\\_5"),
+    (char*)("MHT\\_HT\\_6"), (char*)("MHT\\_HT\\_7"), (char*)("MHT\\_HT\\_8"), (char*)("MHT\\_HT\\_9"), (char*)("MHT\\_HT\\_10")
+  };
+    
   // Fill histograms
+  Int_t binzb = 0;
   bin = 0;
   for (Int_t ijet=0; ijet<MaxNjets; ++ijet) {
     for (Int_t ib=0; ib<MaxNb; ++ib) {
@@ -443,28 +477,34 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	Int_t ikinDY = MaxKinDY == MaxKin ? ikin : 0;
 
         //
-        // Take into account that photon purity and ZgR syst errors partly cancel in the prediction
+        // Partial cancellation of photon trigger eff., fragmentation, and purity syst errors in the prediction
         //
+	gEtrgErrEff[ijet][ikin] = fabs( gEtrgErr[ijet][ikin] - gEtrgErrAv / gEtrgAv );  // Frac. error on gEtrg/<gEtrg>
+	gFdirErrEff[ijet][ikin] = fabs( gFdirErr[ijet][ikin] - gFdirErrAv / gFdirAv );  // Frac. error on gFdir/<gFdir>
 	gPurErrEff[ijet][ikin] = fabs( gPurErr[ijet][ikin] - gPurErrAv / gPurAv );  // Frac. error on gPur/<gPur>
-	ZgRerrEffUp[ijet][ikin] = fabs( ZgRerrUp[ijet][ikin] - ZgRerrUpAv / ZgRAv );  // Frac. upper error on ZgR/<ZgR>
-	ZgRerrEffLow[ijet][ikin] = fabs( ZgRerrLow[ijet][ikin] - ZgRerrLowAv / ZgRAv );  // Frac. upper error on ZgR/<ZgR>
-        // cout << "gPur err, nominal: " << gPurErr[ijet][ikin] << ", eff: " << gPurErrEff
-        //      << ",    ZgR errUp nominal: " << ZgRerrUp[ijet][ikin] << ", eff: " << ZgRerrEffUp[ijet][ikin]
-        //      << ",    ZgR errLow nominal: " << ZgRerrLow[ijet][ikin] << ", eff: " << ZgRerrEffLow[ijet][ikin] << endl;
+        // cout << "Var (err nominal, eff): "
+        //      << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
+	//      << " gFdir (" << gFdirErr[ijet][ikin] << ", " << gFdirErrEff[ijet][ikin] << ") "
+        //      << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
+	//      << endl;
 
 	hzvvgJNobs->SetBinContent(bin, Ngobs[ijet][ikin]);
 	Ngobs[ijet][ikin] > 0 ? hgJstat->SetBinContent(bin, 1+1/Sqrt(Ngobs[ijet][ikin])) : hgJstat->SetBinContent(bin, 1+0);
 	hgJZgR->SetBinContent(bin, ZgR[ijet][ikin]);
 	hZgDR->SetBinContent(bin, ZgDR[ijet][ikin]);
 	hgJZgRerr->SetBinContent(bin, 1+ZgRerr[ijet][ikin]);  // uncorrelated, combined into ZgDRErrUp,Low
-	hgJZgRerrUp->SetBinContent(bin, 1+ZgRerrEffUp[ijet][ikin]);  // correlated
-	hgJZgRerrLow->SetBinContent(bin, 1-ZgRerrEffLow[ijet][ikin]);  // (but Eff error = 0 if error is bin-independent)
+	hgJEtrg->SetBinContent(bin, gEtrg[ijet][ikin]);
+	hzvvgJEtrgErr->SetBinContent(bin, 1+gEtrgErrEff[ijet][ikin]);
+	hgJSF->SetBinContent(bin, gSF[ijet][ikin]);
+	hgJSFerr->SetBinContent(bin, 1+gSFerr[ijet][ikin]);  // correlated (but Eff error = 0 since error is bin-independent)
+	hgJFdir->SetBinContent(bin, gFdir[ijet][ikin]);
+	hzvvgJFdirErr->SetBinContent(bin, 1+gFdirErrEff[ijet][ikin]);  // correlated in Nb, HT
 	hgJPur->SetBinContent(bin, gPur[ijet][ikin]);
 	hzvvgJPurErr->SetBinContent(bin, 1+gPurErrEff[ijet][ikin]);  // correlated
 	// Avoid degenerate factors by combining ZgR stat and ZgDR errors into ZgDRErrUp,Low
 	// hzvvZgDRerrUp->SetBinContent(bin, 1+ZgDRerrUp[ijet][ikin]);
 	// hzvvZgDRerrLow->SetBinContent(bin, 1-ZgDRerrLow[ijet][ikin]);
-	hzvvZgDRerrUp->SetBinContent(bin, 1+Sqrt(Power(ZgRerr[ijet][ikin], 2) + Power(btagSFerr, 2) + Power(ZgDRerrUp[ijet][ikin], 2)));  // uncorrelated
+	hzvvZgDRerrUp->SetBinContent(bin, 1+Sqrt(Power(ZgRerr[ijet][ikin], 2) + Power(btagSFerr, 2) + Power(ZgDRerrUp[ijet][ikin], 2)));  // uncorrelated in Njet, MHT, HT
 	hzvvZgDRerrLow->SetBinContent(bin, 1-Sqrt(Power(ZgRerr[ijet][ikin], 2) + Power(btagSFerr, 2) + Power(ZgDRerrLow[ijet][ikin], 2)));
 	hzvvScaleErr->SetBinContent(bin, 1+Sqrt(Power(DRscaleErr, 2) + Power(DY0bPurErr, 2) + Power(DYtrigEffErr, 2) + Power(LeptonSFerr, 2)));
 
@@ -480,8 +520,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	//      << " " << hDYvalue->GetXaxis()->GetBinLabel(bin)
 	//      << "  " << hDYvalue->GetBinContent(bin) << endl;
 
-	Float_t transferFactor =  ZgDR[ijet][ikin] * ZgR[ijet][ikin] * gPur[ijet][ikin] * DYvalues[ijet][ib][ikinDY];
-	// cout << Ngobs[ijet][ikin] << " " << ZgR[ijet][ikin] << " " << gPur[ijet][ikin] << " " << DYvalues[ijet][ib][ikin] << " " << ZgDR[ijet][ikin] << endl;
+	Float_t transferFactor =  ZgDR[ijet][ikin] * ZgR[ijet][ikin] / gEtrg[ijet][ikin] / gSF[ijet][ikin] * gFdir[ijet][ikin] * gPur[ijet][ikin] * DYvalues[ijet][ib][ikinDY];
+	// cout << Ngobs[ijet][ikin] << " " << ZgR[ijet][ikin] << " " << gFdir[ijet][ikin] << " "
+	// << gPur[ijet][ikin] << " " << DYvalues[ijet][ib][ikin] << " " << ZgDR[ijet][ikin] << endl;
 	Float_t thisNgobs = Ngobs[ijet][ikin] > 0 ? Ngobs[ijet][ikin] : 1.0;
 	Float_t ZinvValue = thisNgobs * transferFactor;
 	hzvvTF->SetBinContent(bin, transferFactor);
@@ -489,7 +530,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	// statErr[bin-1] = ZinvValue*Sqrt(wtStat + Power(DYstat[ijet][ib][ikinDY], 2));
 	statErr[bin-1] = ZinvValue*Sqrt(wtStat);
 	sysUp[bin-1] = ZinvValue*Sqrt(Power(ZgRerr[ijet][ikin], 2)
-				      + Power(ZgRerrEffUp[ijet][ikin], 2)
+				      + Power(gEtrgErrEff[ijet][ikin], 2)
+				      + Power(gFdirErrEff[ijet][ikin], 2)
 				      + Power(gPurErrEff[ijet][ikin], 2)
 				      + Power(ZgDRerrUp[ijet][ikin], 2)
 				      + Power(btagSFerr, 2)
@@ -503,7 +545,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				      + Power(DYsysKin[ijet][ib][ikinDY], 2)
 				      + Power(DYsysPur[ijet][ib][ikinDY], 2));
 	sysLow[bin-1] = ZinvValue*Sqrt(Power(ZgRerr[ijet][ikin], 2)
-				       + Power(ZgRerrEffLow[ijet][ikin], 2)
+				       + Power(gEtrgErrEff[ijet][ikin], 2)
+				       + Power(gFdirErrEff[ijet][ikin], 2)
 				       + Power(gPurErrEff[ijet][ikin], 2)
 				       + Power(ZgDRerrLow[ijet][ikin], 2)
 				       + Power(btagSFerr, 2)
@@ -516,6 +559,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				       + Power(DYsysNjLow[ijet][ib][ikinDY], 2)
 				       + Power(DYsysKin[ijet][ib][ikinDY], 2)
 				       + Power(DYsysPur[ijet][ib][ikinDY], 2));
+	if (bin == 1) cout << endl;
 	cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
 	     << " - " << sysLow[bin-1] << "  TF*Ngobs = "
 	     << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
@@ -531,11 +575,15 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 
 	if (ib == 0) {
           //  Write out LaTex for AN table
-	  if (ikin == 0 || (ijet > 2 && ikin == 1)) tableFile << endl;
-	  sprintf(buf, "%5.0f & %5.0f & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
+	  binzb++;
+	  Float_t ZgRcorr = ZgR[ijet][ikin] / gEtrg[ijet][ikin] / gSF[ijet][ikin];
+	  Float_t ZgRsys = ZgRcorr * Sqrt(Power(gEtrgErr[ijet][ikin], 2) + Power(gSFerr[ijet][ikin], 2));
+	  if (ikin == 0 || (ijet > 2 && ikin == 1)) tableFile << "\\hline" << endl;
+	  sprintf(buf, "%d %s, %s & %5.0f & %5.0f & $%5.3f\\pm%5.3f\\pm%5.3f$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
+		  binzb,
+		  tbLabelNj[ijet], tbLabelKin[ikin],
 		  NgobsEB[ijet][ikin], NgobsEE[ijet][ikin],
-		  ZgR[ijet][ikin], ZgR[ijet][ikin]*ZgRerr[ijet][ikin], ZgR[ijet][ikin]*ZgRerrUp[ijet][ikin],
-		  ZgR[ijet][ikin]*ZgRerrLow[ijet][ikin], 
+		  ZgRcorr, ZgRcorr*ZgRerr[ijet][ikin], ZgRsys, 
 		  ZgDR[ijet][ikin], DRscaleErr, ZgDR[ijet][ikin]*ZgDRerrUp[ijet][ikin],
 		  ZgDR[ijet][ikin]*ZgDRerrLow[ijet][ikin],
 		  ZinvValue, statErr[bin-1], sysUp[bin-1], sysLow[bin-1]);
@@ -625,8 +673,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hgJstat->SetMinimum(-0.2);  hgJstat->SetMaximum(2.2);
   hgJstat->SetLineColor(1);  hgJstat->Draw();
   hgJZgRerr->SetLineColor(2);  hgJZgRerr->Draw("same");
-  // hgJZgRerrUp->SetLineColor(36);  hgJZgRerrUp->Draw("same");
-  // hgJZgRerrLow->SetLineColor(4);  hgJZgRerrLow->Draw("same");
+  hzvvgJEtrgErr->SetLineColor(36);  hzvvgJEtrgErr->Draw("same");
+  hgJSFerr->SetLineColor(4);  hgJSFerr->Draw("same");
+  hzvvgJFdirErr->SetLineColor(47);  hzvvgJFdirErr->Draw("same");
   hzvvgJPurErr->SetLineColor(7);  hzvvgJPurErr->Draw("same");
   hzvvScaleErr->SetLineColor(6);  hzvvScaleErr->Draw("same");
   hzvvZgDRerrUp->SetLineColor(5);  hzvvZgDRerrUp->Draw("same");
@@ -644,8 +693,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
     ErrorsLegend = new TLegend(.12, .60, .30, .97, "");
   ErrorsLegend->AddEntry(hgJstat, "gJstat");
   ErrorsLegend->AddEntry(hgJZgRerr, "RZgErr");
-  // ErrorsLegend->AddEntry(hgJZgRerrUp, "RZgUp");
-  // ErrorsLegend->AddEntry(hgJZgRerrLow, "RZgLow");
+  ErrorsLegend->AddEntry(hzvvgJEtrgErr, "gEtrg");
+  ErrorsLegend->AddEntry(hgJSFerr, "gSF");
+  ErrorsLegend->AddEntry(hzvvgJFdirErr, "gFdir");
   ErrorsLegend->AddEntry(hzvvgJPurErr, "gJpur");
   ErrorsLegend->AddEntry(hzvvScaleErr, "Scale");
   ErrorsLegend->AddEntry(hzvvZgDRerrUp, "DR");
@@ -669,8 +719,12 @@ Int_t getData_gJets(const char* fileName,
 		    std::vector <std::vector<Float_t> >& NgobsEE,
 		    std::vector <std::vector<Float_t> >& ZgR,
 		    std::vector <std::vector<Float_t> >& ZgRerr,
-		    std::vector <std::vector<Float_t> >& ZgRerrUp,
-		    std::vector <std::vector<Float_t> >& ZgRerrLow,
+		    std::vector <std::vector<Float_t> >& gEtrg,
+		    std::vector <std::vector<Float_t> >& gEtrgErr,
+		    std::vector <std::vector<Float_t> >& gSF,
+		    std::vector <std::vector<Float_t> >& gSFerr,
+		    std::vector <std::vector<Float_t> >& gFdir,
+		    std::vector <std::vector<Float_t> >& gFdirErr,
 		    std::vector <std::vector<Float_t> >& gPur,
 		    std::vector <std::vector<Float_t> >& gPurErr,
 		    std::vector <std::vector<Float_t> >& ZgDR,
@@ -681,14 +735,14 @@ Int_t getData_gJets(const char* fileName,
   //
   /*
   Notes on correlations:
-  gPurErr is correlated among the 40 bins for which Nb = 0.  1111 = 15
-  ZgRerrUp,Low are correlated among the 40 bins.             1111 = 15
-  ZgRerr is uncorrelated among the 40 bins.                  0100 = 4, combined with
-  ZgDRerrUp, Low are uncorrelated among the 40 bins.         0100 = 4  this one
+  gEtrgErr is correlated among Nj, Nb, HT bins.          1101 = 13
+  gSFerr is correlated among all bins.                   1111 = 15
+  gPurErr is correlated among all bins.                  1111 = 15
+  ZgRerr is uncorrelated among the 46 Nb = 0 bins.       0100 = 4, combined with
+  gFdir is uncorrelated among the 46 Nb = 0 bins.        0100 = 4, combined with
+  ZgDRerrUp, Low are uncorrelated among the 46 bins.     0100 = 4  this one
   As of 10 Jul 2016 we combine these last two in ZgDRerrUp, Low.
    */
-  Float_t gPurErrIn;
-  Float_t gFdirErr = 0.076 * 0;  //  This hard-wired number should be handled in a more robust way
   Int_t Nrow = Ngobs.size();
   Int_t Ncol = Ngobs[0].size();
   ifstream dataStream;
@@ -742,24 +796,30 @@ Int_t getData_gJets(const char* fileName,
       n++; token[n] = strtok(0, "|");            // NgobsEE
       sscanf(token[n], "%f", &NgobsEE[ijet][ikin]);
       n++; token[n] = strtok(0, "|");
+      n++; token[n] = strtok(0, "(");             // Etrg
+      sscanf(token[n], "%f", &gEtrg[ijet][ikin]);
+      n++; token[n] = strtok(0, ")");             // EtrgErr  1101 = 13
+      sscanf(token[n], "%f", &gEtrgErr[ijet][ikin]);
+      n++; token[n] = strtok(0, "|");
+      n++; token[n] = strtok(0, "(");             // SF
+      sscanf(token[n], "%f", &gSF[ijet][ikin]);
+      n++; token[n] = strtok(0, ")");             // SFerr  1111 = 15
+      sscanf(token[n], "%f", &gSFerr[ijet][ikin]);
+      n++; token[n] = strtok(0, "|");
       n++; token[n] = strtok(0, "(");             // RZg
       sscanf(token[n], "%f", &ZgR[ijet][ikin]);
-      n++; token[n] = strtok(0, ",");             // RZgErr  0100 = 8
+      n++; token[n] = strtok(0, ")");             // RZgErr  0100 = 4
       sscanf(token[n], "%f", &ZgRerr[ijet][ikin]);
-      n++; token[n] = strtok(0, "-");             // RZgErrUp  1111 = 15
-      sscanf(token[n], "%f", &ZgRerrUp[ijet][ikin]);
-      n++; token[n] = strtok(0, ")");             // RZgErrLow  1111 = 15
-      sscanf(token[n], "%f", &ZgRerrLow[ijet][ikin]);
-      n++; token[n] = strtok(0, ")");
       n++; token[n] = strtok(0, "|");
-
+      n++; token[n] = strtok(0, "(");             // Fdir
+      sscanf(token[n], "%f", &gFdir[ijet][ikin]);
+      n++; token[n] = strtok(0, ")");             // FdirErr  0101 = 5 (for now)
+      sscanf(token[n], "%f", &gFdirErr[ijet][ikin]);
+      n++; token[n] = strtok(0, "|");
       n++; token[n] = strtok(0, "(");             // Purity
       sscanf(token[n], "%f", &gPur[ijet][ikin]);
       n++; token[n] = strtok(0, ")");             // PurityErr  1111 = 15
       sscanf(token[n], "%f", &gPurErr[ijet][ikin]);
-      // sscanf(token[n], "%f", &gPurErrIn);
-      // gPurErr[ijet][ikin] = Sqrt(Power(gPurErrIn, 2) - Power(gFdirErr, 2));
-      // printf("%s%6.3f%6.3f\n", "Purity error, modified = ", gPurErrIn, gPurErr[ijet][ikin]);
       n++; token[n] = strtok(0, " ");
       n++; token[n] = strtok(0, "(");             // ZgDR
       sscanf(token[n], "%f", &ZgDR[ijet][ikin]);
@@ -785,14 +845,6 @@ Int_t getData_DR(const char* fileName,
   //
   // Read data from the file, parse, and set data arrays.
   //
-  /*
-  Notes on correlations:
-  gPurErr is correlated among the 40 bins for which Nb = 0.  1111 = 15
-  ZgRerrUp,Low are correlated among the 40 bins.             1111 = 15
-  ZgRerr is uncorrelated among the 40 bins.                  0100 = 4, combined with
-  ZgDRerrUp, Low are uncorrelated among the 40 bins.         0100 = 4  this one
-  As of 10 Jul 2016 we combine these last two in ZgDRerrUp, Low.
-   */
   Int_t Nrow = ZgDR.size();
   Int_t Ncol = ZgDR[0].size();
   ifstream dataStream;
@@ -836,9 +888,9 @@ Int_t getData_DR(const char* fileName,
       sscanf(token[n], "%f", &ZgDR[ijet][ikin]);
       n++; token[n] = strtok(0, "|");  // Double ratio scale error  1111 = 15
       if (ijet == 0 && ikin == 0) sscanf(token[n], "%f", &DRscaleErr);
-      n++; token[n] = strtok(0, "|");             // ZgDRErrUp
+      n++; token[n] = strtok(0, "|");             // ZgDRErrUp  0100 = 4
       sscanf(token[n], "%f", &ZgDRerrUp[ijet][ikin]);
-      n++; token[n] = strtok(0, "|");             // ZgDRErrLow
+      n++; token[n] = strtok(0, "|");             // ZgDRErrLow  0100 = 4
       sscanf(token[n], "%f", &ZgDRerrLow[ijet][ikin]);
       n++; token[n] = strtok(0, "|");             // 0b purity
       n++; token[n] = strtok(0, "|");             // 0b purity error  1111 = 15
@@ -873,7 +925,7 @@ Int_t getData_DY(const char* fileName,
   All DY nuisances except DYsysKin are correlated across all kinematic bins.
   DYstat is correlated across Njets bins for Njets >= 7                1011 = 11, 2999
   Rb0MCstat is correlated only over kinematic bins                     0011 = 3
-  DYsysNjUp, Low are uncorrelated in Njets, Nbjets                     0111 = 3
+  DYsysNjUp, Low are correlated over kinematic bins                    0011 = 3
   DYsysPur is correlated across Njets bins for Njets >= 5,
     and across Nb bins for Nb >=2                                      1111 = 15, 2299        
   DYsysKin is uncorrelated (though all are zero for Nb = 0).           0000 = 0
@@ -919,8 +971,8 @@ Int_t getData_DY(const char* fileName,
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0[ijet][ib][ikin]);
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1011 = 11, 2999
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]);  // 0011 = 3
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  0111 = 3
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 0111 = 3
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  0011 = 3
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 0011 = 3
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysKin[ijet][ib][ikin]);  // 0000 = 0
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysPur[ijet][ib][ikin]);  // 1111 = 15, 2299
       }
