@@ -117,7 +117,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 		   std::vector <std::vector <std::vector<Float_t> > >& Rb0sysLow,
 		   std::vector <std::vector <std::vector<Float_t> > >& Rb0sysKin,
 		   std::vector <std::vector <std::vector<Float_t> > >& Rb0sysPur);
-  void setCorrelationLabels(TH1* histo, const unsigned correlVar, const int minCorrelBin=9999);
+  void setCorrelationLabels(TH1* histo, const unsigned correlVar, const int minCorrelBin=9999,
+			    const int maxCorrelBin=0);
 
   Float_t ignoreBin = -999.;
   TString dataFile_gJets;
@@ -375,13 +376,11 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   TH1F *hgJFdir = (TH1F*)hTemplate->Clone("hgJFdir");
   hgJFdir->GetYaxis()->SetTitle("gamma+jets fragmentation factor");
 
-  TH1F *hzvvgJFdirErrUp = (TH1F*)hCorrelTemplate->Clone("hzvvgJFdirErrUp");
-  if (doSample == Signal) setCorrelationLabels(hzvvgJFdirErrUp, 4);  
-  hzvvgJFdirErrUp->GetYaxis()->SetTitle("gamma+jets fragmentation factor +error");
+  TH1F *hgJFdirErrUp = (TH1F*)hCorrelTemplate->Clone("hgJFdirErrUp");
+  hgJFdirErrUp->GetYaxis()->SetTitle("gamma+jets fragmentation factor +error");
 
-  TH1F *hzvvgJFdirErrLow = (TH1F*)hCorrelTemplate->Clone("hzvvgJFdirErrLow");
-  if (doSample == Signal) setCorrelationLabels(hzvvgJFdirErrLow, 4);  
-  hzvvgJFdirErrLow->GetYaxis()->SetTitle("gamma+jets fragmentation factor -error");
+  TH1F *hgJFdirErrLow = (TH1F*)hCorrelTemplate->Clone("hgJFdirErrLow");
+  hgJFdirErrLow->GetYaxis()->SetTitle("gamma+jets fragmentation factor -error");
 
   TH1F *hgJPur = (TH1F*)hTemplate->Clone("hgJPur");
   hgJPur->GetYaxis()->SetTitle("gamma+jets purity");
@@ -393,13 +392,19 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   TH1F *hZgDR = (TH1F*)hTemplate->Clone("hZgDR");
   hZgDR->GetYaxis()->SetTitle("gamma+jets double ratio");
 
-  TH1F *hzvvZgDRerrUp = (TH1F*)hCorrelTemplate->Clone("hzvvZgDRerrUp");
-  if (doSample == Signal) setCorrelationLabels(hzvvZgDRerrUp, 4);  
-  hzvvZgDRerrUp->GetYaxis()->SetTitle("gamma+jets double ratio error");
+  TH1F *hZgDRerrUp = (TH1F*)hCorrelTemplate->Clone("hZgDRerrUp");
+  hZgDRerrUp->GetYaxis()->SetTitle("gamma+jets double ratio error");
 
-  TH1F *hzvvZgDRerrLow = (TH1F*)hCorrelTemplate->Clone("hzvvZgDRerrLow");
-  if (doSample == Signal) setCorrelationLabels(hzvvZgDRerrLow, 4);  
-  hzvvZgDRerrLow->GetYaxis()->SetTitle("gamma+jets double ratio error");
+  TH1F *hZgDRerrLow = (TH1F*)hCorrelTemplate->Clone("hZgDRerrLow");
+  hZgDRerrLow->GetYaxis()->SetTitle("gamma+jets double ratio error");
+
+  TH1F *hzvvNbCorrelUp = (TH1F*)hCorrelTemplate->Clone("hzvvNbCorrelUp");
+  if (doSample == Signal) setCorrelationLabels(hzvvNbCorrelUp, 4);
+  hzvvNbCorrelUp->GetYaxis()->SetTitle("Errors correlated in Nb");
+
+  TH1F *hzvvNbCorrelLow = (TH1F*)hCorrelTemplate->Clone("hzvvNbCorrelLow");
+  if (doSample == Signal) setCorrelationLabels(hzvvNbCorrelLow, 4);
+  hzvvNbCorrelLow->GetYaxis()->SetTitle("Errors correlated in Nb");
 
   TH1F *hzvvScaleErr = (TH1F*)hCorrelTemplate->Clone("hzvvScaleErr");
   if (doSample == Signal) setCorrelationLabels(hzvvScaleErr, 15);  
@@ -411,7 +416,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hDYvalue->GetYaxis()->SetTitle("DY ratio to 0b value");
 
   TH1F *hzvvDYstat = (TH1F*)hCorrelTemplate->Clone("hzvvDYstat");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYstat, 11, 2999);  
+  if (doSample == Signal) setCorrelationLabels(hzvvDYstat, 11, 3999);
   hzvvDYstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
   TH1F *hzvvDYMCstat = (TH1F*)hCorrelTemplate->Clone("hzvvDYMCstat");
@@ -419,11 +424,11 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hzvvDYMCstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
   TH1F *hzvvDYsysNjUp = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysNjUp");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjUp, 3);  
+  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjUp, 15, 9999, 4100);  // Uncorrel in Njets, but only last bin != 0
   hzvvDYsysNjUp->GetYaxis()->SetTitle("DY ratio to 0b syst+ error Nj extrapolation");
 
   TH1F *hzvvDYsysNjLow = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysNjLow");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjLow, 3);  
+  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjLow, 15, 9999, 4100);  
   hzvvDYsysNjLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
 
   TH1F *hzvvDYsysKin = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysKin");
@@ -509,17 +514,23 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	hgJSF->SetBinContent(bin, gSF[ijet][ikin]);
 	hgJSFerr->SetBinContent(bin, 1+gSFerr[ijet][ikin]);  // correlated (but Eff error = 0 since error is bin-independent)
 	hgJFdir->SetBinContent(bin, gFdir[ijet][ikin]);
-	hzvvgJFdirErrUp->SetBinContent(bin, 1+gFdirErrUpEff[ijet][ikin]);  // correlated in Nb
-	hzvvgJFdirErrLow->SetBinContent(bin, 1-gFdirErrLowEff[ijet][ikin]);  // correlated in Nb
+	hgJFdirErrUp->SetBinContent(bin, 1+gFdirErrUpEff[ijet][ikin]);  // correlated in Nb
+	hgJFdirErrLow->SetBinContent(bin, 1-gFdirErrLowEff[ijet][ikin]);  // correlated in Nb
 	hgJPur->SetBinContent(bin, gPur[ijet][ikin]);
 	hzvvgJPurErr->SetBinContent(bin, 1+gPurErrEff[ijet][ikin]);  // correlated
-	// Avoid degenerate factors by combining ZgR stat and ZgDR errors into ZgDRErrUp,Low
-	// hzvvZgDRerrUp->SetBinContent(bin, 1+ZgDRerrUp[ijet][ikin]);
-	// hzvvZgDRerrLow->SetBinContent(bin, 1-ZgDRerrLow[ijet][ikin]);
-	hzvvZgDRerrUp->SetBinContent(bin, 1+Sqrt(Power(ZgRerr[ijet][ikin], 2) + Power(btagSFerr, 2) + Power(ZgDRerrUp[ijet][ikin], 2)));  // uncorrelated in Njet, MHT, HT
-	hzvvZgDRerrLow->SetBinContent(bin, 1-Sqrt(Power(ZgRerr[ijet][ikin], 2) + Power(btagSFerr, 2) + Power(ZgDRerrLow[ijet][ikin], 2)));
-	hzvvScaleErr->SetBinContent(bin, 1+Sqrt(Power(DRscaleErr, 2) + Power(DY0bPurErr, 2) + Power(DYtrigEffErr, 2) + Power(LeptonSFerr, 2)));
-
+	hZgDRerrUp->SetBinContent(bin, 1+ZgDRerrUp[ijet][ikin]);
+	hZgDRerrLow->SetBinContent(bin, 1-ZgDRerrLow[ijet][ikin]);
+	// Avoid degenerate factors by combining ZgR stat, Fdir, and ZgDR errors into hzvvNbCorrelUp,Low
+	hzvvNbCorrelUp->SetBinContent(bin, 1+Sqrt(Power(ZgRerr[ijet][ikin], 2)
+						  + Power(gFdirErrUpEff[ijet][ikin], 2)
+						  + Power(ZgDRerrUp[ijet][ikin], 2)));  // correlated in Nb
+	hzvvNbCorrelLow->SetBinContent(bin, 1-Sqrt(Power(ZgRerr[ijet][ikin], 2)
+						   + Power(gFdirErrLowEff[ijet][ikin], 2)
+						   + Power(ZgDRerrLow[ijet][ikin], 2)));
+	// Likewise combine several globally correlated errors
+	hzvvScaleErr->SetBinContent(bin, 1+Sqrt(Power(DRscaleErr, 2) + Power(btagSFerr, 2)
+						+ Power(DY0bPurErr, 2) + Power(DYtrigEffErr, 2)
+						+ Power(LeptonSFerr, 2)));  // Correlated globally
   	hDYvalue->SetBinContent(bin, DYvalues[ijet][ib][ikinDY]);
   	hzvvDYstat->SetBinContent(bin, 1+DYstat[ijet][ib][ikinDY]);
   	hzvvDYMCstat->SetBinContent(bin, 1+DYMCstat[ijet][ib][ikinDY]);
@@ -687,12 +698,12 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hgJZgRerr->SetLineColor(2);  hgJZgRerr->Draw("same");
   hzvvgJEtrgErr->SetLineColor(36);  hzvvgJEtrgErr->Draw("same");
   hgJSFerr->SetLineColor(4);  hgJSFerr->Draw("same");
-  hzvvgJFdirErrUp->SetLineColor(47);  hzvvgJFdirErrUp->Draw("same");
-  hzvvgJFdirErrLow->SetLineColor(47);  hzvvgJFdirErrLow->Draw("same");
+  hgJFdirErrUp->SetLineColor(47);  hgJFdirErrUp->Draw("same");
+  hgJFdirErrLow->SetLineColor(47);  hgJFdirErrLow->Draw("same");
   hzvvgJPurErr->SetLineColor(7);  hzvvgJPurErr->Draw("same");
   hzvvScaleErr->SetLineColor(6);  hzvvScaleErr->Draw("same");
-  hzvvZgDRerrUp->SetLineColor(5);  hzvvZgDRerrUp->Draw("same");
-  hzvvZgDRerrLow->SetLineColor(5);  hzvvZgDRerrLow->Draw("same");
+  hZgDRerrUp->SetLineColor(kOrange);  hZgDRerrUp->Draw("same");
+  hZgDRerrLow->SetLineColor(kOrange);  hZgDRerrLow->Draw("same");
   hzvvDYstat->SetLineColor(8);  hzvvDYstat->Draw("same");
   hzvvDYMCstat->SetLineColor(9);  hzvvDYMCstat->Draw("same");
   hzvvDYsysNjUp->SetLineColor(3);  hzvvDYsysNjUp->Draw("same");
@@ -708,10 +719,10 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   ErrorsLegend->AddEntry(hgJZgRerr, "RZg");
   ErrorsLegend->AddEntry(hzvvgJEtrgErr, "gEtrg");
   ErrorsLegend->AddEntry(hgJSFerr, "gSF");
-  ErrorsLegend->AddEntry(hzvvgJFdirErrUp, "gFdir");
+  ErrorsLegend->AddEntry(hgJFdirErrUp, "gFdir");
   ErrorsLegend->AddEntry(hzvvgJPurErr, "gJpur");
   ErrorsLegend->AddEntry(hzvvScaleErr, "Scale");
-  ErrorsLegend->AddEntry(hzvvZgDRerrUp, "DR");
+  ErrorsLegend->AddEntry(hZgDRerrUp, "DR");
   ErrorsLegend->AddEntry(hzvvDYstat, "DYstat");
   ErrorsLegend->AddEntry(hzvvDYMCstat, "DYMCstat");
   ErrorsLegend->AddEntry(hzvvDYsysNjUp, "DYNj");
@@ -984,7 +995,7 @@ Int_t getData_DY(const char* fileName,
 	n++; token[n] = strtok(0, "|");
 	n++; token[n] = strtok(0, "|");
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0[ijet][ib][ikin]);
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1011 = 11, 2999
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1011 = 11, 3999
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]);  // 0011 = 3
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  0011 = 3
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 0011 = 3
@@ -996,7 +1007,8 @@ Int_t getData_DY(const char* fileName,
   return 0;
 }  // ---------------------------------------------------------------
 
-void setCorrelationLabels(TH1* histo, const unsigned correlVar, const int minCorrelBin=9999) {
+void setCorrelationLabels(TH1* histo, const unsigned correlVar, const int minCorrelBin=9999,
+			  const int maxCorrelBin=0) {
   TString hname = histo->GetName();
   cout << hname;
   hname.Remove(0,1);  // Strip off the "h" at start of histogram name
@@ -1008,46 +1020,60 @@ void setCorrelationLabels(TH1* histo, const unsigned correlVar, const int minCor
 
     if (correlVar & 8) {
       Ssiz_t index = binLabel.Index("_NJets");
-      if (minCorrelBin/1000 % 10 == 9) {
+      int thisMinCorrelBin = minCorrelBin/1000 % 10;
+      int thisMaxCorrelBin = maxCorrelBin/1000 % 10;
+      if (thisMinCorrelBin == 9 && thisMaxCorrelBin == 0) {
 	binLabel.Remove(index, 7);  // Correlated across all NJets bins
       } else {
 	TString theBin = binLabel(index+6,1);  // Correlated across some NJets bins
-	char newBin[10];  sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), minCorrelBin/1000 % 10));
+	char newBin[10];
+	if (thisMinCorrelBin < 9) sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), thisMinCorrelBin));
+	if (thisMaxCorrelBin > 0) sprintf(newBin, "%1d", TMath::Max(theBin.Atoi(), thisMaxCorrelBin));
 	binLabel.Replace(index+6, 1, newBin);
       }
     }
 
     if (correlVar & 4) {
       Ssiz_t index = binLabel.Index("_BTags");
-      if (minCorrelBin/100 % 10 == 9) {
+      int thisMinCorrelBin = minCorrelBin/100 % 10;
+      int thisMaxCorrelBin = maxCorrelBin/100 % 10;
+      if (thisMinCorrelBin == 9 && thisMaxCorrelBin == 0) {
     	binLabel.Remove(index, 7);  // Correlated across all BTag bins
       } else {
 	TString theBin = binLabel(index+6,1);  // Correlated across some BTag bins
-	char newBin[10];  sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), minCorrelBin/100 % 10));
+	char newBin[10];
+	if (thisMinCorrelBin < 9) sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), thisMinCorrelBin));
+	if (thisMaxCorrelBin > 0) sprintf(newBin, "%1d", TMath::Max(theBin.Atoi(), thisMaxCorrelBin));
 	binLabel.Replace(index+6, 1, newBin);
       }
     }
 
     if (correlVar & 2) {
       Ssiz_t index = binLabel.Index("_MHT");
-      // cout << "minCorrelBin/10 % 10 = " << minCorrelBin/10 % 10 << endl;
-      if (minCorrelBin/10 % 10 == 9) {
-	// cout << "  removing _MHTx" << endl;
+      int thisMinCorrelBin = minCorrelBin/10 % 10;
+      int thisMaxCorrelBin = maxCorrelBin/10 % 10;
+      if (thisMinCorrelBin == 9 && thisMaxCorrelBin == 0) {
     	binLabel.Remove(index, 5);  // Correlated across all MHT bins
       } else {
 	TString theBin = binLabel(index+4,1);  // Correlated across some MHT bins
-	char newBin[10];  sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), minCorrelBin/10 % 10));
+	char newBin[10];
+	if (thisMinCorrelBin < 9) sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), thisMinCorrelBin));
+	if (thisMaxCorrelBin > 0) sprintf(newBin, "%1d", TMath::Max(theBin.Atoi(), thisMaxCorrelBin));
 	binLabel.Replace(index+4, 1, newBin);
       }
     }
 
     if (correlVar & 1) {
       Ssiz_t index = binLabel.Index("_HT");
-      if (minCorrelBin % 10 == 9) {
+      int thisMinCorrelBin = minCorrelBin % 10;
+      int thisMaxCorrelBin = maxCorrelBin % 10;
+      if (thisMinCorrelBin == 9 && thisMaxCorrelBin == 0) {
     	binLabel.Remove(index, 4);  // Correlated across all HT bins
       } else {
 	TString theBin = binLabel(index+3,1);  // Correlated across some HT bins
-	char newBin[10];  sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), minCorrelBin % 10));
+	char newBin[10];
+	if (thisMinCorrelBin < 9) sprintf(newBin, "%1d", TMath::Min(theBin.Atoi(), thisMinCorrelBin));
+	if (thisMaxCorrelBin > 0) sprintf(newBin, "%1d", TMath::Max(theBin.Atoi(), thisMaxCorrelBin));
 	binLabel.Replace(index+3, 1, newBin);
       }
     }
