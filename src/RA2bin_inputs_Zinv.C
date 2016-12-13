@@ -416,20 +416,26 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hDYvalue->GetYaxis()->SetTitle("DY ratio to 0b value");
 
   TH1F *hzvvDYstat = (TH1F*)hCorrelTemplate->Clone("hzvvDYstat");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYstat, 11, 3999);
+  // if (doSample == Signal) setCorrelationLabels(hzvvDYstat, 11, 3999);
+  if (doSample == Signal) setCorrelationLabels(hzvvDYstat, 15, 3999, 100);
   hzvvDYstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
-  TH1F *hzvvDYMCstat = (TH1F*)hCorrelTemplate->Clone("hzvvDYMCstat");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYMCstat, 3);  
-  hzvvDYMCstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
+  TH1F *hDYMCstat = (TH1F*)hCorrelTemplate->Clone("hDYMCstat");
+  hDYMCstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
-  TH1F *hzvvDYsysNjUp = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysNjUp");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjUp, 15, 9999, 4100);  // Uncorrel in Njets, but only last bin != 0
-  hzvvDYsysNjUp->GetYaxis()->SetTitle("DY ratio to 0b syst+ error Nj extrapolation");
+  TH1F *hDYsysNjUp = (TH1F*)hCorrelTemplate->Clone("hDYsysNjUp");
+  hDYsysNjUp->GetYaxis()->SetTitle("DY ratio to 0b syst+ error Nj extrapolation");
 
-  TH1F *hzvvDYsysNjLow = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysNjLow");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysNjLow, 15, 9999, 4100);  
-  hzvvDYsysNjLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
+  TH1F *hDYsysNjLow = (TH1F*)hCorrelTemplate->Clone("hDYsysNjLow");
+  hDYsysNjLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
+
+  TH1F *hzvvDYMCerrUp = (TH1F*)hCorrelTemplate->Clone("hzvvDYMCerrUp");
+  if (doSample == Signal) setCorrelationLabels(hzvvDYMCerrUp, 15, 9999, 4100);  // Uncorrel in Njets, but only last bin != 0
+  hzvvDYMCerrUp->GetYaxis()->SetTitle("DY ratio to 0b syst+ error Nj extrapolation");
+
+  TH1F *hzvvDYMCerrLow = (TH1F*)hCorrelTemplate->Clone("hzvvDYMCerrLow");
+  if (doSample == Signal) setCorrelationLabels(hzvvDYMCerrLow, 15, 9999, 4100);  
+  hzvvDYMCerrLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
 
   TH1F *hzvvDYsysKin = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysKin");
   if (doSample == Signal) setCorrelationLabels(hzvvDYsysKin, 0);  
@@ -533,9 +539,14 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 						+ Power(LeptonSFerr, 2)));  // Correlated globally
   	hDYvalue->SetBinContent(bin, DYvalues[ijet][ib][ikinDY]);
   	hzvvDYstat->SetBinContent(bin, 1+DYstat[ijet][ib][ikinDY]);
-  	hzvvDYMCstat->SetBinContent(bin, 1+DYMCstat[ijet][ib][ikinDY]);
-  	hzvvDYsysNjUp->SetBinContent(bin, 1+DYsysNjUp[ijet][ib][ikinDY]);
-  	hzvvDYsysNjLow->SetBinContent(bin, 1-DYsysNjLow[ijet][ib][ikinDY]);
+  	hDYMCstat->SetBinContent(bin, 1+DYMCstat[ijet][ib][ikinDY]);
+  	hDYsysNjUp->SetBinContent(bin, 1+DYsysNjUp[ijet][ib][ikinDY]);
+  	hDYsysNjLow->SetBinContent(bin, 1-DYsysNjLow[ijet][ib][ikinDY]);
+	// and combine extrapolation J-factor errors
+  	hzvvDYMCerrUp->SetBinContent(bin, 1+Sqrt(Power(DYMCstat[ijet][ib][ikinDY], 2)
+					       + Power(DYsysNjUp[ijet][ib][ikinDY], 2)));
+  	hzvvDYMCerrLow->SetBinContent(bin, 1-Sqrt(Power(DYMCstat[ijet][ib][ikinDY], 2)
+						+ Power(DYsysNjLow[ijet][ib][ikinDY], 2)));
   	hzvvDYsysKin->SetBinContent(bin, 1+DYsysKin[ijet][ib][ikinDY]);
   	hzvvDYsysPur->SetBinContent(bin, 1+DYsysPur[ijet][ib][ikinDY]);
 
@@ -705,9 +716,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hZgDRerrUp->SetLineColor(kOrange);  hZgDRerrUp->Draw("same");
   hZgDRerrLow->SetLineColor(kOrange);  hZgDRerrLow->Draw("same");
   hzvvDYstat->SetLineColor(8);  hzvvDYstat->Draw("same");
-  hzvvDYMCstat->SetLineColor(9);  hzvvDYMCstat->Draw("same");
-  hzvvDYsysNjUp->SetLineColor(3);  hzvvDYsysNjUp->Draw("same");
-  hzvvDYsysNjLow->SetLineColor(3);  hzvvDYsysNjLow->Draw("same");
+  hDYMCstat->SetLineColor(9);  hDYMCstat->Draw("same");
+  hDYsysNjUp->SetLineColor(3);  hDYsysNjUp->Draw("same");
+  hDYsysNjLow->SetLineColor(3);  hDYsysNjLow->Draw("same");
   hzvvDYsysKin->SetLineColor(42);  hzvvDYsysKin->Draw("same");
   hzvvDYsysPur->SetLineColor(46);  hzvvDYsysPur->Draw("same");
   TLegend* ErrorsLegend;
@@ -724,9 +735,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   ErrorsLegend->AddEntry(hzvvScaleErr, "Scale");
   ErrorsLegend->AddEntry(hZgDRerrUp, "DR");
   ErrorsLegend->AddEntry(hzvvDYstat, "DYstat");
-  ErrorsLegend->AddEntry(hzvvDYMCstat, "DYMCstat");
-  ErrorsLegend->AddEntry(hzvvDYsysNjUp, "DYNj");
-  // ErrorsLegend->AddEntry(hzvvDYsysNjLow, "DYNjLow");
+  ErrorsLegend->AddEntry(hDYMCstat, "DYMCstat");
+  ErrorsLegend->AddEntry(hDYsysNjUp, "DYNj");
   ErrorsLegend->AddEntry(hzvvDYsysKin, "DYkin");
   ErrorsLegend->AddEntry(hzvvDYsysPur, "DYpur");
   ErrorsLegend->Draw();
@@ -949,9 +959,9 @@ Int_t getData_DY(const char* fileName,
 /*
   Notes on correlations:
   All DY nuisances except DYsysKin are correlated across all kinematic bins.
-  DYstat is correlated across Njets bins for Njets >= 7                1011 = 11, 2999
-  Rb0MCstat is correlated only over kinematic bins                     0011 = 3
-  DYsysNjUp, Low are correlated over kinematic bins                    0011 = 3
+  DYstat is correlated across Njets bins for Njets >= 7; irrelevant for Nb = 0   1111 = 15, 3999, 100
+  Rb0MCstat & DYsysNjUp, Low are correlated over kinematic bins;
+    irrelevant for Nb < 4                                              1111 = 15, 9999, 4100
   DYsysPur is correlated across Njets bins for Njets >= 5,
     and across Nb bins for Nb >=2                                      1111 = 15, 2299        
   DYsysKin is uncorrelated (though all are zero for Nb = 0).           0000 = 0
@@ -995,10 +1005,10 @@ Int_t getData_DY(const char* fileName,
 	n++; token[n] = strtok(0, "|");
 	n++; token[n] = strtok(0, "|");
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0[ijet][ib][ikin]);
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1011 = 11, 3999
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]);  // 0011 = 3
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  0011 = 3
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 0011 = 3
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1111 = 15, 3999, 100
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]); //  1111 = 15, 9999, 4100 
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  1111 = 15, 9999, 4100
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 1111 = 15, 9999, 4100
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysKin[ijet][ib][ikin]);  // 0000 = 0
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysPur[ijet][ib][ikin]);  // 1111 = 15, 2299
       }
