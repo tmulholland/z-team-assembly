@@ -438,7 +438,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   hzvvDYMCerrLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
 
   TH1F *hzvvDYsysKin = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysKin");
-  if (doSample == Signal) setCorrelationLabels(hzvvDYsysKin, 0);  
+  if (doSample == Signal) setCorrelationLabels(hzvvDYsysKin, 4, 9999, 100);  
   hzvvDYsysKin->GetYaxis()->SetTitle("DY ratio to 0b syst error kinematics dependence");
 
   TH1F *hzvvDYsysPur = (TH1F*)hCorrelTemplate->Clone("hzvvDYsysPur");
@@ -964,7 +964,7 @@ Int_t getData_DY(const char* fileName,
     irrelevant for Nb < 4                                              1111 = 15, 9999, 4100
   DYsysPur is correlated across Njets bins for Njets >= 5,
     and across Nb bins for Nb >=2                                      1111 = 15, 2299        
-  DYsysKin is uncorrelated (though all are zero for Nb = 0).           0000 = 0
+  DYsysKin is uncorrelated (though all are zero for Nb = 0).           0100 =  4, 9999, 100
 */
   Int_t Nrow = Rb0.size();
   Int_t Ncol = Rb0[0].size();
@@ -1009,7 +1009,7 @@ Int_t getData_DY(const char* fileName,
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]); //  1111 = 15, 9999, 4100 
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  1111 = 15, 9999, 4100
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 1111 = 15, 9999, 4100
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysKin[ijet][ib][ikin]);  // 0000 = 0
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysKin[ijet][ib][ikin]);  // 0100 =  4, 9999, 100
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysPur[ijet][ib][ikin]);  // 1111 = 15, 2299
       }
     }
