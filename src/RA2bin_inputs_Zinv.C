@@ -86,11 +86,13 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 		      std::vector <std::vector<Float_t> >& ZgRerr,
 		      std::vector <std::vector<Float_t> >& gEtrg,
 		      std::vector <std::vector<Float_t> >& gEtrgErr,
+		      std::vector <std::vector<Float_t> >& gEtrgSys,
 		      std::vector <std::vector<Float_t> >& gSF,
 		      std::vector <std::vector<Float_t> >& gSFerr,
 		      std::vector <std::vector<Float_t> >& gFdir,
 		      std::vector <std::vector<Float_t> >& gFdirErrUP,
 		      std::vector <std::vector<Float_t> >& gFdirErrLow,
+		      std::vector <std::vector<Float_t> >& gFdirSys,
 		      std::vector <std::vector<Float_t> >& gPur,
 		      std::vector <std::vector<Float_t> >& gPurErr,
 		      std::vector <std::vector<Float_t> >& ZgDR,
@@ -178,6 +180,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector <std::vector<Float_t> > gEtrg(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gEtrgErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gEtrgErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gEtrgSys(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gSF(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gSFerr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gFdir(MaxNjets, std::vector<Float_t>(MaxKin, 0));
@@ -185,6 +188,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector <std::vector<Float_t> > gFdirErrUpEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gFdirErrLow(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gFdirErrLowEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
+  std::vector <std::vector<Float_t> > gFdirSys(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPur(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPurErr(MaxNjets, std::vector<Float_t>(MaxKin, 0));
   std::vector <std::vector<Float_t> > gPurErrEff(MaxNjets, std::vector<Float_t>(MaxKin, 0));
@@ -212,8 +216,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   std::vector < std::vector <std::vector<Float_t> > >
     DYsysPur(MaxNjets, std::vector< std::vector<Float_t> >(MaxNb, std::vector<Float_t>(MaxKinDY, 0)));
   // Read gJets, DY data from files
-  if (0 != getData_gJets(dataFile_gJets, Ngobs, NgobsEB, NgobsEE, ZgR, ZgRerr, gEtrg, gEtrgErr, gSF,
-			 gSFerr, gFdir, gFdirErrUp, gFdirErrLow, gPur, gPurErr, ZgDR_from_gJets,
+  if (0 != getData_gJets(dataFile_gJets, Ngobs, NgobsEB, NgobsEE, ZgR, ZgRerr, gEtrg, gEtrgErr, gEtrgSys, gSF,
+			 gSFerr, gFdir, gFdirErrUp, gFdirErrLow, gFdirSys, gPur, gPurErr, ZgDR_from_gJets,
 			 ZgDRerrUp_from_gJets, ZgDRerrLow_from_gJets)) {
     cout << "Failed to get data." << endl;
     return;
@@ -237,13 +241,13 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
       bin++;
       cout << bin << "  Ngobs = " << Ngobs[ijet][ikin]
 	   << "  ZgR = " << ZgR[ijet][ikin] << " (" << 100*ZgRerr[ijet][ikin]
-           << "%)  gEtrg =  " << gEtrg[ijet][ikin] << " (" << 100*gEtrgErr[ijet][ikin]
+           << "%)  gEtrg =  " << gEtrg[ijet][ikin] << " (" << 100*gEtrgErr[ijet][ikin] << "+/-" << 100*gEtrgSys[ijet][ikin]
            << "%)  gSF =  " << gSF[ijet][ikin] << " (" << 100*gSFerr[ijet][ikin]
            << "%)  gFdir = " << gFdir[ijet][ikin]
-	   << " (+" << 100*gFdirErrUp[ijet][ikin] << "%, -" << +100*gFdirErrLow[ijet][ikin] << "%)"
+	   << " (+" << 100*gFdirErrUp[ijet][ikin] << "-" << +100*gFdirErrLow[ijet][ikin] << "+/-" << +100*gFdirSys[ijet][ikin] << "%)"
            << "%)  gPur = " << gPur[ijet][ikin] << " (" << 100*gPurErr[ijet][ikin]
            << "%)  ZgDR = " << ZgDR[ijet][ikin]
-	   << " (+" << 100*ZgDRerrUp[ijet][ikin] << "%, -" << 100*ZgDRerrLow[ijet][ikin] << "%)"
+	   << " (+" << 100*ZgDRerrUp[ijet][ikin] << "-" << 100*ZgDRerrLow[ijet][ikin] << "%)"
 	   << endl;
       NobsSum += Ngobs[ijet][ikin];
       gEtrgAv += Ngobs[ijet][ikin]*gEtrg[ijet][ikin];
@@ -483,8 +487,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
     (char*)("MHT\\_HT\\_1"), (char*)("MHT\\_HT\\_2"), (char*)("MHT\\_HT\\_3"), (char*)("MHT\\_HT\\_4"), (char*)("MHT\\_HT\\_5"),
     (char*)("MHT\\_HT\\_6"), (char*)("MHT\\_HT\\_7"), (char*)("MHT\\_HT\\_8"), (char*)("MHT\\_HT\\_9"), (char*)("MHT\\_HT\\_10")
   };
-    
+  //  
   // Fill histograms
+  //
   Int_t binzb = 0;
   bin = 0;
   for (Int_t ijet=0; ijet<MaxNjets; ++ijet) {
@@ -492,8 +497,9 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
       if (ijet == 0 && ib > 2) continue;  // Skip Njet=2, Nb>2 bins
       for (Int_t ikin=0; ikin<MaxKin; ++ikin) {
 	if (ijet > 2 && (ikin == 0 || ikin == 3)) continue;  // Skip high-Njet, low-HT bins
-	if (MaxKin > 10 && ijet > 2 && ikin == 6) continue;  // Skip high-Njet, low-HT bins
+	if (MaxKin > 10 && ijet > 2 && ikin == 6) continue;  // Skip high-Njet, low-HT bins, QCD-binned
 	bin++;
+	// cout << "ijet, ib, ikin, bin = " << ijet << ", " << ib << ", " << ikin << ", " << bin << endl;
 	Int_t ikinDY = MaxKinDY == MaxKin ? ikin : 0;
 
         //
@@ -607,7 +613,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	  ZinvBG0EVsysLow->SetBinContent(bin, sysLow[bin-1]);
 	}
 
-	if (ib == 0) {
+	if (MaxKin <= 10 && ib == 0) {
           //  Write out LaTex for AN table
 	  binzb++;
 	  Float_t ZgRcorr = ZgR[ijet][ikin] / gEtrg[ijet][ikin] / gSF[ijet][ikin];
@@ -754,11 +760,13 @@ Int_t getData_gJets(const char* fileName,
 		    std::vector <std::vector<Float_t> >& ZgRerr,
 		    std::vector <std::vector<Float_t> >& gEtrg,
 		    std::vector <std::vector<Float_t> >& gEtrgErr,
+		    std::vector <std::vector<Float_t> >& gEtrgSys,
 		    std::vector <std::vector<Float_t> >& gSF,
 		    std::vector <std::vector<Float_t> >& gSFerr,
 		    std::vector <std::vector<Float_t> >& gFdir,
 		    std::vector <std::vector<Float_t> >& gFdirErrUp,
 		    std::vector <std::vector<Float_t> >& gFdirErrLow,
+		    std::vector <std::vector<Float_t> >& gFdirSys,
 		    std::vector <std::vector<Float_t> >& gPur,
 		    std::vector <std::vector<Float_t> >& gPurErr,
 		    std::vector <std::vector<Float_t> >& ZgDR,
@@ -802,7 +810,7 @@ Int_t getData_gJets(const char* fileName,
     for (Int_t ikin=0; ikin<Ncol; ++ikin) {
       if (ijet > 2 && (ikin == 0 || ikin == 3)) continue;  // Skip high-Njet, low-HT bins
       if (Ncol > 10 && ijet > 2 && ikin == 6) continue;  // Skip high-Njet, low-HT bins
-      cout << ijet << " " << ikin << endl;
+      // cout << ijet << " " << ikin << endl;
       // Read next line of the stream and extract its data
       dataStream.getline(buf, 512);
       // cout << buf << endl;
@@ -832,6 +840,8 @@ Int_t getData_gJets(const char* fileName,
       n++; token[n] = strtok(0, "|");
       n++; token[n] = strtok(0, "(");             // Etrg
       sscanf(token[n], "%f", &gEtrg[ijet][ikin]);
+      n++; token[n] = strtok(0, ",");             // EtrgSys  0100 = 4
+      sscanf(token[n], "%f", &gEtrgSys[ijet][ikin]);
       n++; token[n] = strtok(0, ")");             // EtrgErr  1101 = 13
       sscanf(token[n], "%f", &gEtrgErr[ijet][ikin]);
       n++; token[n] = strtok(0, "|");
@@ -847,6 +857,8 @@ Int_t getData_gJets(const char* fileName,
       n++; token[n] = strtok(0, "|");
       n++; token[n] = strtok(0, "(");             // Fdir
       sscanf(token[n], "%f", &gFdir[ijet][ikin]);
+      n++; token[n] = strtok(0, ",");             // FdirSys  0100 = 4
+      sscanf(token[n], "%f", &gFdirSys[ijet][ikin]);
       n++; token[n] = strtok(0, "-");             // FdirErrUp  0100 = 4
       sscanf(token[n], "%f", &gFdirErrUp[ijet][ikin]);
       n++; token[n] = strtok(0, ")");             // FdirErrLow  0100 = 4
