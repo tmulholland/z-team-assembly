@@ -244,7 +244,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
            << "%)  gEtrg =  " << gEtrg[ijet][ikin] << " (" << 100*gEtrgErr[ijet][ikin] << "+/-" << 100*gEtrgSys[ijet][ikin]
            << "%)  gSF =  " << gSF[ijet][ikin] << " (" << 100*gSFerr[ijet][ikin]
            << "%)  gFdir = " << gFdir[ijet][ikin]
-	   << " (+" << 100*gFdirErrUp[ijet][ikin] << "-" << +100*gFdirErrLow[ijet][ikin] << "+/-" << +100*gFdirSys[ijet][ikin] << "%)"
+	   << " (+" << 100*gFdirErrUp[ijet][ikin] << "-" << +100*gFdirErrLow[ijet][ikin] << "+/-" << +100*gFdirSys[ijet][ikin]
            << "%)  gPur = " << gPur[ijet][ikin] << " (" << 100*gPurErr[ijet][ikin]
            << "%)  ZgDR = " << ZgDR[ijet][ikin]
 	   << " (+" << 100*ZgDRerrUp[ijet][ikin] << "-" << 100*ZgDRerrLow[ijet][ikin] << "%)"
