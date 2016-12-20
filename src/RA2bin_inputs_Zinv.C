@@ -249,6 +249,13 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
            << "%)  ZgDR = " << ZgDR[ijet][ikin]
 	   << " (+" << 100*ZgDRerrUp[ijet][ikin] << "-" << 100*ZgDRerrLow[ijet][ikin] << "%)"
 	   << endl;
+
+      //  Treat gFdirSys as fraction of 1-Fdir, uncorrelated, and combine with stat error
+      Float_t FdirSysUp = (1/gFdir[ijet][ikin] - 1) * gFdirSys[ijet][ikin];
+      gFdirErrUp[ijet][ikin] = Sqrt(Power(gFdirErrUp[ijet][ikin], 2) + Power(FdirSysUp, 2));
+      Float_t FdirSysLow = (1/gFdir[ijet][ikin] - 1) * gFdirSys[ijet][ikin];
+      gFdirErrLow[ijet][ikin] = Sqrt(Power(gFdirErrLow[ijet][ikin], 2) + Power(FdirSysLow, 2));
+
       NobsSum += Ngobs[ijet][ikin];
       gEtrgAv += Ngobs[ijet][ikin]*gEtrg[ijet][ikin];
       gEtrgErrAv += Ngobs[ijet][ikin]*gEtrgErr[ijet][ikin]*gEtrg[ijet][ikin];  // Absolute error on gEtrg
@@ -509,14 +516,14 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	gFdirErrUpEff[ijet][ikin] = fabs( gFdirErrUp[ijet][ikin] - gFdirErrUpAv / gFdirAv );  // Frac. +error on gFdir/<gFdir>
 	gFdirErrLowEff[ijet][ikin] = fabs( gFdirErrLow[ijet][ikin] - gFdirErrLowAv / gFdirAv );  // Frac. -error on gFdir/<gFdir>
 	gPurErrEff[ijet][ikin] = fabs( gPurErr[ijet][ikin] - gPurErrAv / gPurAv );  // Frac. error on gPur/<gPur>
-	// if (ib == 0) {
-        //   cout << "iJet " << ijet << " Var (err nominal, eff): "
-        //        << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
-	//        << " gFdir (" << gFdirErrUp[ijet][ikin] << ", " << gFdirErrUpEff[ijet][ikin] << ") "
-	//        << " gFdir (" << gFdirErrLow[ijet][ikin] << ", " << gFdirErrLowEff[ijet][ikin] << ") "
-        //        << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
-	//        << endl;
-	// }
+	if (ib == 0) {
+          cout << "iJet " << ijet << " Var (err nominal, eff): "
+               << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
+	       << " gFdir (" << gFdirErrUp[ijet][ikin] << ", " << gFdirErrUpEff[ijet][ikin] << ") "
+	       << " gFdir (" << gFdirErrLow[ijet][ikin] << ", " << gFdirErrLowEff[ijet][ikin] << ") "
+               << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
+	       << endl;
+	}
 
 	hzvvgJNobs->SetBinContent(bin, Ngobs[ijet][ikin]);
 	Ngobs[ijet][ikin] > 0 ? hgJstat->SetBinContent(bin, 1+1/Sqrt(Ngobs[ijet][ikin])) : hgJstat->SetBinContent(bin, 1+0);
@@ -601,10 +608,10 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				       + Power(DYsysNjLow[ijet][ib][ikinDY], 2)
 				       + Power(DYsysKin[ijet][ib][ikinDY], 2)
 				       + Power(DYsysPur[ijet][ib][ikinDY], 2));
-	if (bin == 1) cout << endl;
-	cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
-	     << " - " << sysLow[bin-1] << "  TF*Ngobs = "
-	     << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
+	// if (bin == 1) cout << endl;
+	// cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
+	//      << " - " << sysLow[bin-1] << "  TF*Ngobs = "
+	//      << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
 	if (Ngobs[ijet][ikin] > 0) {
 	  ZinvBGpred->SetBinContent(bin, ZinvValue);
 	  ZinvBGsysUp->SetBinContent(bin, sysUp[bin-1]);
@@ -861,6 +868,9 @@ Int_t getData_gJets(const char* fileName,
       sscanf(token[n], "%f", &gFdir[ijet][ikin]);
       n++; token[n] = strtok(0, ",");             // FdirSys  0100 = 4
       sscanf(token[n], "%f", &gFdirSys[ijet][ikin]);
+      //******************** kludge *********************************************
+      gFdirSys[ijet][ikin] = 0.3;
+      //******************** kludge *********************************************
       n++; token[n] = strtok(0, "-");             // FdirErrUp  0100 = 4
       sscanf(token[n], "%f", &gFdirErrUp[ijet][ikin]);
       n++; token[n] = strtok(0, ")");             // FdirErrLow  0100 = 4
