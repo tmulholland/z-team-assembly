@@ -370,27 +370,27 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   TH1F *hgJZgRerr = (TH1F*)hTemplate->Clone("hgJZgRerr");
   hgJZgRerr->GetYaxis()->SetTitle("gamma+jets Z/gamma ratio error");
 
-  TH1F *hgJEtrg = (TH1F*)hCorrelTemplate->Clone("hgJEtrg");
+  TH1F *hgJEtrg = (TH1F*)hTemplate->Clone("hgJEtrg");
   hgJEtrg->GetYaxis()->SetTitle("gamma+jets trigger efficiency");
 
   TH1F *hzvvgJEtrgErr = (TH1F*)hCorrelTemplate->Clone("hzvvgJEtrgErr");
   if (doSample == Signal) setCorrelationLabels(hzvvgJEtrgErr, 13);  
   hzvvgJEtrgErr->GetYaxis()->SetTitle("gamma+jets trigger efficiency error");
 
-  TH1F *hgJSF = (TH1F*)hCorrelTemplate->Clone("hgJSF");
+  TH1F *hgJSF = (TH1F*)hTemplate->Clone("hgJSF");
   hgJSF->GetYaxis()->SetTitle("gamma+jets data/MC scale factor");
 
-  TH1F *hgJSFerr = (TH1F*)hCorrelTemplate->Clone("hgJSFerr");
+  TH1F *hgJSFerr = (TH1F*)hTemplate->Clone("hgJSFerr");
   // if (doSample == Signal) setCorrelationLabels(hgJSFerr, 15);  // Canceled by DR 
   hgJSFerr->GetYaxis()->SetTitle("gamma+jets data/MC scale factor");
 
   TH1F *hgJFdir = (TH1F*)hTemplate->Clone("hgJFdir");
   hgJFdir->GetYaxis()->SetTitle("gamma+jets fragmentation factor");
 
-  TH1F *hgJFdirErrUp = (TH1F*)hCorrelTemplate->Clone("hgJFdirErrUp");
+  TH1F *hgJFdirErrUp = (TH1F*)hTemplate->Clone("hgJFdirErrUp");
   hgJFdirErrUp->GetYaxis()->SetTitle("gamma+jets fragmentation factor +error");
 
-  TH1F *hgJFdirErrLow = (TH1F*)hCorrelTemplate->Clone("hgJFdirErrLow");
+  TH1F *hgJFdirErrLow = (TH1F*)hTemplate->Clone("hgJFdirErrLow");
   hgJFdirErrLow->GetYaxis()->SetTitle("gamma+jets fragmentation factor -error");
 
   TH1F *hgJPur = (TH1F*)hTemplate->Clone("hgJPur");
@@ -403,10 +403,10 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   TH1F *hZgDR = (TH1F*)hTemplate->Clone("hZgDR");
   hZgDR->GetYaxis()->SetTitle("gamma+jets double ratio");
 
-  TH1F *hZgDRerrUp = (TH1F*)hCorrelTemplate->Clone("hZgDRerrUp");
+  TH1F *hZgDRerrUp = (TH1F*)hTemplate->Clone("hZgDRerrUp");
   hZgDRerrUp->GetYaxis()->SetTitle("gamma+jets double ratio error");
 
-  TH1F *hZgDRerrLow = (TH1F*)hCorrelTemplate->Clone("hZgDRerrLow");
+  TH1F *hZgDRerrLow = (TH1F*)hTemplate->Clone("hZgDRerrLow");
   hZgDRerrLow->GetYaxis()->SetTitle("gamma+jets double ratio error");
 
   TH1F *hzvvNbCorrelUp = (TH1F*)hCorrelTemplate->Clone("hzvvNbCorrelUp");
@@ -431,13 +431,13 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   if (doSample == Signal) setCorrelationLabels(hzvvDYstat, 15, 3999, 100);
   hzvvDYstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
-  TH1F *hDYMCstat = (TH1F*)hCorrelTemplate->Clone("hDYMCstat");
+  TH1F *hDYMCstat = (TH1F*)hTemplate->Clone("hDYMCstat");
   hDYMCstat->GetYaxis()->SetTitle("DY ratio to 0b stat error");
 
-  TH1F *hDYsysNjUp = (TH1F*)hCorrelTemplate->Clone("hDYsysNjUp");
+  TH1F *hDYsysNjUp = (TH1F*)hTemplate->Clone("hDYsysNjUp");
   hDYsysNjUp->GetYaxis()->SetTitle("DY ratio to 0b syst+ error Nj extrapolation");
 
-  TH1F *hDYsysNjLow = (TH1F*)hCorrelTemplate->Clone("hDYsysNjLow");
+  TH1F *hDYsysNjLow = (TH1F*)hTemplate->Clone("hDYsysNjLow");
   hDYsysNjLow->GetYaxis()->SetTitle("DY ratio to 0b syst- error Nj extrapolation");
 
   TH1F *hzvvDYMCerrUp = (TH1F*)hCorrelTemplate->Clone("hzvvDYMCerrUp");
@@ -516,14 +516,14 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	gFdirErrUpEff[ijet][ikin] = fabs( gFdirErrUp[ijet][ikin] - gFdirErrUpAv / gFdirAv );  // Frac. +error on gFdir/<gFdir>
 	gFdirErrLowEff[ijet][ikin] = fabs( gFdirErrLow[ijet][ikin] - gFdirErrLowAv / gFdirAv );  // Frac. -error on gFdir/<gFdir>
 	gPurErrEff[ijet][ikin] = fabs( gPurErr[ijet][ikin] - gPurErrAv / gPurAv );  // Frac. error on gPur/<gPur>
-	if (ib == 0) {
-          cout << "iJet " << ijet << " Var (err nominal, eff): "
-               << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
-	       << " gFdir (" << gFdirErrUp[ijet][ikin] << ", " << gFdirErrUpEff[ijet][ikin] << ") "
-	       << " gFdir (" << gFdirErrLow[ijet][ikin] << ", " << gFdirErrLowEff[ijet][ikin] << ") "
-               << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
-	       << endl;
-	}
+	// if (ib == 0) {
+        //   cout << "iJet " << ijet << " Var (err nominal, eff): "
+        //        << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
+	//        << " gFdir (" << gFdirErrUp[ijet][ikin] << ", " << gFdirErrUpEff[ijet][ikin] << ") "
+	//        << " gFdir (" << gFdirErrLow[ijet][ikin] << ", " << gFdirErrLowEff[ijet][ikin] << ") "
+        //        << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
+	//        << endl;
+	// }
 
 	hzvvgJNobs->SetBinContent(bin, Ngobs[ijet][ikin]);
 	Ngobs[ijet][ikin] > 0 ? hgJstat->SetBinContent(bin, 1+1/Sqrt(Ngobs[ijet][ikin])) : hgJstat->SetBinContent(bin, 1+0);
@@ -608,10 +608,10 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				       + Power(DYsysNjLow[ijet][ib][ikinDY], 2)
 				       + Power(DYsysKin[ijet][ib][ikinDY], 2)
 				       + Power(DYsysPur[ijet][ib][ikinDY], 2));
-	// if (bin == 1) cout << endl;
-	// cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
-	//      << " - " << sysLow[bin-1] << "  TF*Ngobs = "
-	//      << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
+	if (bin == 1) cout << endl;
+	cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
+	     << " - " << sysLow[bin-1] << "  TF*Ngobs = "
+	     << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
 	if (Ngobs[ijet][ikin] > 0) {
 	  ZinvBGpred->SetBinContent(bin, ZinvValue);
 	  ZinvBGsysUp->SetBinContent(bin, sysUp[bin-1]);
