@@ -483,6 +483,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
   ZinvBG0EVsysLow->GetYaxis()->SetTitle("Lower syst. error of Z#rightarrow#nu#bar{#nu} background, 0 events");
 
   ofstream tableFile;  tableFile.open("table_for_AN.txt");
+  ofstream predFile;  predFile.open("zinvPred.txt");
   char buf[256];
 
   // For AN table
@@ -516,14 +517,14 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	gFdirErrUpEff[ijet][ikin] = fabs( gFdirErrUp[ijet][ikin] - gFdirErrUpAv / gFdirAv );  // Frac. +error on gFdir/<gFdir>
 	gFdirErrLowEff[ijet][ikin] = fabs( gFdirErrLow[ijet][ikin] - gFdirErrLowAv / gFdirAv );  // Frac. -error on gFdir/<gFdir>
 	gPurErrEff[ijet][ikin] = fabs( gPurErr[ijet][ikin] - gPurErrAv / gPurAv );  // Frac. error on gPur/<gPur>
-	// if (ib == 0) {
-        //   cout << "iJet " << ijet << " Var (err nominal, eff): "
-        //        << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
-	//        << " gFdir (" << gFdirErrUp[ijet][ikin] << ", " << gFdirErrUpEff[ijet][ikin] << ") "
-	//        << " gFdir (" << gFdirErrLow[ijet][ikin] << ", " << gFdirErrLowEff[ijet][ikin] << ") "
-        //        << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
-	//        << endl;
-	// }
+	if (ib == 0) {
+          cout << "iJet " << ijet << " Var (err nominal, eff): "
+               << " gEtrg (" << gEtrgErr[ijet][ikin] << ", " << gEtrgErrEff[ijet][ikin] << ") "
+	       << " gFdir (" << gFdirErrUp[ijet][ikin] << ", " << gFdirErrUpEff[ijet][ikin] << ") "
+	       << " gFdir (" << gFdirErrLow[ijet][ikin] << ", " << gFdirErrLowEff[ijet][ikin] << ") "
+               << " gPur (" << gPurErr[ijet][ikin] << ", " << gPurErrEff[ijet][ikin] << ") "
+	       << endl;
+	}
 
 	hzvvgJNobs->SetBinContent(bin, Ngobs[ijet][ikin]);
 	Ngobs[ijet][ikin] > 0 ? hgJstat->SetBinContent(bin, 1+1/Sqrt(Ngobs[ijet][ikin])) : hgJstat->SetBinContent(bin, 1+0);
@@ -608,8 +609,8 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				       + Power(DYsysNjLow[ijet][ib][ikinDY], 2)
 				       + Power(DYsysKin[ijet][ib][ikinDY], 2)
 				       + Power(DYsysPur[ijet][ib][ikinDY], 2));
-	if (bin == 1) cout << endl;
-	cout << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
+	if (bin == 1) predFile << endl;
+	predFile << bin << "  " << ZinvValue << " +/- " << statErr[bin-1] << " + " << sysUp[bin-1]
 	     << " - " << sysLow[bin-1] << "  TF*Ngobs = "
 	     << hzvvTF->GetBinContent(bin) * hzvvgJNobs->GetBinContent(bin) << endl;
 	if (Ngobs[ijet][ikin] > 0) {
@@ -641,6 +642,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
       }  // ikin
     }  // ib
   }  // ijet
+  predFile.close();
   tableFile.close();
 
   TGraphAsymmErrors* ZinvBGsyst = new TGraphAsymmErrors(ZinvBGpred);
