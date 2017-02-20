@@ -995,6 +995,7 @@ Int_t getData_DY(const char* fileName,
   Int_t Nrow = Rb0.size();
   Int_t Ncol = Rb0[0].size();
   Int_t Nplane = Rb0[0][0].size();
+  Float_t Rb0sysJup, Rb0sysJlow, Rb0systtZ;
   ifstream dataStream;
   dataStream.open(fileName); // open the data file
   if (!dataStream.good()) {
@@ -1033,8 +1034,11 @@ Int_t getData_DY(const char* fileName,
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0[ijet][ib][ikin]);
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0stat[ijet][ib][ikin]);  //   1111 = 15, 3999, 100
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0MCstat[ijet][ib][ikin]); //  1111 = 15, 9999, 4100 
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysUp[ijet][ib][ikin]);  //  1111 = 15, 9999, 4100
-	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysLow[ijet][ib][ikin]);  // 1111 = 15, 9999, 4100
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0systtZ);
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysJup);
+	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysJlow);
+	Rb0sysUp[ijet][ib][ikin] = Sqrt(Power(Rb0systtZ, 2) + Power(Rb0sysJup, 2));  //  1111 = 15, 9999, 4100
+	Rb0sysLow[ijet][ib][ikin] = Sqrt(Power(Rb0systtZ, 2) + Power(Rb0sysJlow, 2));  // 1111 = 15, 9999, 4100
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysKin[ijet][ib][ikin]);  // 0100 =  4, 9999, 100
 	n++; token[n] = strtok(0, "|");  sscanf(token[n], "%f", &Rb0sysPur[ijet][ib][ikin]);  // 1111 = 15, 2299
       }
