@@ -1,16 +1,14 @@
-SysError in <TFile::TFile>: file /home/ww/work/data/lpcTrees/Skims/Run2ProductionV12/tree_signal/tree_ZJetsToNuNu_HT-100to200.root can not be opened (No such file or directory)
-SysError in <TFile::TFile>: file /home/ww/work/data/lpcTrees/Skims/Run2ProductionV12/tree_signal/tree_ZJetsToNuNu_HT-100to200.root can not be opened (No such file or directory)
+SysError in <TFile::TFile>: file /home/ww/work/data/lpcTrees/Skims/Run2ProductionV12/tree_LDP/tree_TTZToLLNuNu.root can not be opened (No such file or directory)
+SysError in <TFile::TFile>: file /home/ww/work/data/lpcTrees/Skims/Run2ProductionV12/tree_LDP/tree_TTZToLLNuNu.root can not be opened (No such file or directory)
 Traceback (most recent call last):
-  File "./getExtrapDatFiles.py", line 106, in <module>
-    h_binom=RA2b.getBinomialCorrection(kinRange=kinRange)
-  File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 3180, in getBinomialCorrection
-    h_nj = getDist('zinv','NJets',distRange=[2.5,12.5])
-  File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 2342, in getDist
+  File "./getExtrapDatFiles.py", line 156, in <module>
+    ttz78 = RA2b.getHist('ttzvv',kinRange=-1,njRange=range(4,5),nbRange=range(1,4),dphiCut=sample,applyMHTCut=applyMHTCut)
+  File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 2633, in getHist
     chain = getChain(sample, doLumi, treeName, doProof, treeLoc, removeZkfactor)
   File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 1813, in getChain
     files = getFileList(sample, doLumi, treeLoc, treeName, removeZkfactor)
-  File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 792, in getFileList
-    setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-100to200.root", doLumi, treeName, removeZkfactor)
+  File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 1013, in getFileList
+    setTreeWeight(treeLoc+"/tree_LDP/tree_TTZToLLNuNu.root", doLumi, treeName, False, True)
   File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 370, in setTreeWeight
     weight = getTreeWeight(File, doLumi, treeName, removeZkfactor, getWeight, setWeight, doNoisy, xsec)
   File "/home/ww/work/RA2b/z-team-assembly/python/RA2b.py", line 334, in getTreeWeight
