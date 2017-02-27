@@ -581,6 +581,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	statErr[bin-1] = ZinvValue*Sqrt(wtStat);
 	sysUp[bin-1] = ZinvValue*Sqrt(Power(ZgRerr[ijet][ikin], 2)
 				      + Power(gEtrgErrEff[ijet][ikin], 2)
+				      + 0*Power(gSFerr[ijet][ikin], 2)  // This one cancels
 				      + Power(gFdirErrUpEff[ijet][ikin], 2)
 				      + Power(gPurErrEff[ijet][ikin], 2)
 				      + Power(ZgDRerrUp[ijet][ikin], 2)
@@ -596,6 +597,7 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 				      + Power(DYsysPur[ijet][ib][ikinDY], 2));
 	sysLow[bin-1] = ZinvValue*Sqrt(Power(ZgRerr[ijet][ikin], 2)
 				       + Power(gEtrgErrEff[ijet][ikin], 2)
+                  		       + 0*Power(gSFerr[ijet][ikin], 2)  // This one cancels
 				       + Power(gFdirErrLowEff[ijet][ikin], 2)
 				       + Power(gPurErrEff[ijet][ikin], 2)
 				       + Power(ZgDRerrLow[ijet][ikin], 2)
@@ -629,14 +631,23 @@ void RA2bin_inputs_Zinv(sampleChoice doSample = Signal,
 	  Float_t ZgRcorr = ZgR[ijet][ikin] / gEtrg[ijet][ikin] / gSF[ijet][ikin];
 	  Float_t ZgRsys = ZgRcorr * Sqrt(Power(gEtrgErr[ijet][ikin], 2) + Power(gSFerr[ijet][ikin], 2));
 	  if (ikin == 0 || (ijet > 2 && ikin == 1)) tableFile << "\\hline" << endl;
-	  sprintf(buf, "%d %s, %s & %5.0f & %5.0f & $%5.3f\\pm%5.3f\\pm%5.3f$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
+	  sprintf(buf, "%d & %5.0f & $%5.3f\\pm%5.3f$ & $%5.3f\\pm%5.3f\\pm%5.3f$ & $%5.3f^{+%5.3f}_{-%5.3f}$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
 		  binzb,
-		  tbLabelNj[ijet], tbLabelKin[ikin],
-		  NgobsEB[ijet][ikin], NgobsEE[ijet][ikin],
+		  Ngobs[ijet][ikin],
+		  gPur[ijet][ikin], gPur[ijet][ikin]*gPurErr[ijet][ikin],
 		  ZgRcorr, ZgRcorr*ZgRerr[ijet][ikin], ZgRsys, 
-		  ZgDR[ijet][ikin], DRscaleErr, ZgDR[ijet][ikin]*ZgDRerrUp[ijet][ikin],
+		  gFdir[ijet][ikin], gFdir[ijet][ikin]*gFdirErrUp[ijet][ikin], gFdir[ijet][ikin]*gFdirErrLow[ijet][ikin],
+		  ZgDR[ijet][ikin], ZgDR[ijet][ikin]*DRscaleErr, ZgDR[ijet][ikin]*ZgDRerrUp[ijet][ikin],
 		  ZgDR[ijet][ikin]*ZgDRerrLow[ijet][ikin],
 		  ZinvValue, statErr[bin-1], sysUp[bin-1], sysLow[bin-1]);
+	  // sprintf(buf, "%d %s, %s & %5.0f & %5.0f & $%5.3f\\pm%5.3f\\pm%5.3f$ & $%5.3f\\pm%5.3f^{+%5.3f}_{-%5.3f}$ & $%6.1f\\pm%4.1f^{+%4.1f}_{-%4.1f}$ \\\\\n",
+	  // 	  binzb,
+	  // 	  tbLabelNj[ijet], tbLabelKin[ikin],
+	  // 	  NgobsEB[ijet][ikin], NgobsEE[ijet][ikin],
+	  // 	  ZgRcorr, ZgRcorr*ZgRerr[ijet][ikin], ZgRsys, 
+	  // 	  ZgDR[ijet][ikin], ZgDR[ijet][ikin]*DRscaleErr, ZgDR[ijet][ikin]*ZgDRerrUp[ijet][ikin],
+	  // 	  ZgDR[ijet][ikin]*ZgDRerrLow[ijet][ikin],
+	  // 	  ZinvValue, statErr[bin-1], sysUp[bin-1], sysLow[bin-1]);
 	  tableFile << buf;
 	}
       }  // ikin
