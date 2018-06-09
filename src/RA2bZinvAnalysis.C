@@ -319,7 +319,6 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
     }
     Double_t eventWt = 1000*intLumi_*Weight*selWt*puWeight;
     if (eventWt < 0) eventWt *= -1;
-    hCCbins->Fill(Double_t(RA2binBranch), eventWt);
     hCCbins->Fill(Double_t(binCC), eventWt);
 
   }  // End loop over entries
