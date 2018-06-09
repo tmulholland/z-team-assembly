@@ -22,8 +22,6 @@ public:
 
   TChain* getChain(const char* sample);
   TH1F* makeCChist(const char* sample);
-  TH2F* make2Dhist(const char* sample);
-  bool CheckValue(ROOT::Internal::TTreeReaderValueBase& value);
   TCut getCuts(const TString sampleKey);
   int kinBin(double& ht, double& mht);
 
@@ -74,8 +72,6 @@ private:
 // #include <TGraphAsymmErrors.h>
 #include <TFile.h>
 #include <TTreeFormula.h>
-#include <TTreeReader.h>
-#include <TTreeReaderArray.h>
 #include <TString.h>
 #include <TRegexp.h>
 #include <TCut.h>
@@ -246,14 +242,6 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     //     extraWeight+="*(1)"
     //     cuts*=extraWeight
 
-  // cout << "Original cuts = " << cuts << endl;
-  // TString oneCut(trigCuts);
-  // TString newCuts(cuts);
-  // newCuts(oneCut) = "1";
-  // cout << "New cuts = " << newCuts << endl;
-  // return TCut(newCuts);
-
-
   return cuts;
  
 }
@@ -280,19 +268,6 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
   TCut baselineCuts = getCuts(sample);
   cout << "baseline = " << baselineCuts << endl;
 
-  // TTreeReader reader(chain);
-  // TTreeReaderValue<double> weight(reader, "Weight");
-  // TTreeReaderValue<double> trueNint(reader, "TrueNumInteractions");
-  // TTreeReaderValue<double> madHT(reader, "madHT");
-  // TTreeReaderValue<double> MHT(reader, "MHT");
-  // TTreeReaderValue<double> HT(reader, "HT");
-  // TTreeReaderValue<int> NJets(reader, "NJets");
-  // TTreeReaderValue<int> BTags(reader, "BTags");
-  // while (reader.Next()) {
-    // if (!CheckValue(weight)) continue;
-    // hTrueNint->Fill(*weight, *trueNint);
-    // hmadHT->Fill(*madHT, *weight);
-
   Long64_t Nentries = chain->GetEntries();
   cout << "Nentries in tree = " << Nentries << endl;
   int count = 0, outCount = 0;
@@ -302,27 +277,8 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
   for (Long64_t entry = 0; entry < Nentries; ++entry) {
     count++;
     if (count % 100000 == 0) cout << "Entry number " << count << endl;
-    // Long64_t Nbytes = chain->GetEntry(entry);
-    // if (count < 100) cout << "Nbytes = " << Nbytes << endl;
 
     chain->LoadTree(entry);
-
-    // double selWt = 0;
-    // Bool_t selected = kFALSE;
-    // if (count < 100) cout << "baseline Ndata = " << select->GetNdata() << endl;
-    // for(Int_t j = 0; j < select->GetNdata(); ++j) {
-    //   if ((selWt = select->EvalInstance(j))) {
-    // 	selected = kTRUE;
-    // 	break;
-    //   }
-    // }
-    // if (selected) {
-    //   outCount++;
-    //   if (outCount < 100) cout << "selWt = " << selWt << endl;
-    //   chain->GetEntry(entry);
-    //   // if (event->GetNtrack() > 605) newtree->Fill();
-    // }
-    // // event->Clear();
 
     select->GetNdata();
     double selWt = select->EvalInstance(0);
@@ -371,33 +327,6 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
   // return hTrueNint;
   // return hmadHT;
   return hCCbins;
-
-}
-
-TH2F*
-RA2bZinvAnalysis::make2Dhist(const char* sample) {
-
-  TH2F* hKinBinvsMHT = new TH2F("hKinBinvsMHT", "kin bin vs MHT", 40, 0, 2000, 17, -2, 15);
-  TH2F* hKinBinvsHT = new TH2F("hKinBinvsHT", "kin bin vs HT", 40, 0, 2000, 17, -2, 15);
-
-  getCuts(sample);
-  
-  TChain* chain = getChain(sample);
-  // chain->Print();
-
-  TTreeReader reader(chain);
-  TTreeReaderValue<double> weight(reader, "Weight");
-  TTreeReaderValue<double> MHT(reader, "MHT");
-  TTreeReaderValue<double> HT(reader, "HT");
-
-  while (reader.Next()) {
-    Double_t bin = kinBin(*HT, *MHT);
-    // if (bin == -2) cout << "HT, MHT, bin = (" << *HT << ", " << *MHT << ", " << bin << ")" << endl;
-    hKinBinvsMHT->Fill(*MHT, bin, *weight);
-    hKinBinvsHT->Fill(*HT, bin, *weight);
-  }
-
-  return hKinBinvsMHT;
 
 }
 
@@ -519,14 +448,4 @@ RA2bZinvAnalysis::fillCutMaps() {
   triggerMap_["photon"] = {"51"};
   triggerMap_["sig"] = {"29", "33"};
 
-}
-
-bool
-RA2bZinvAnalysis::CheckValue(ROOT::Internal::TTreeReaderValueBase& value) {
-  if (value.GetSetupStatus() < 0) {
-     std::cerr << "Error " << value.GetSetupStatus()
-               << "setting up reader for " << value.GetBranchName() << '\n';
-     return false;
-  }
-  return true;
 }
