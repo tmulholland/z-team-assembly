@@ -314,8 +314,11 @@ def getTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
         doNoisy=False
     if(removeZkfactor==None):
         removeZkfactor=False
-    if(getWeight==None): 
+    print "Before resetting getWeight = "+str(getWeight)
+    # if(getWeight==None): 
+    if(getWeight is None): 
         getWeight=True
+    print "After resetting getWeight = "+str(getWeight)
     if(setWeight==None): # for manually setting the weight
         setWeight=False
 
@@ -333,7 +336,9 @@ def getTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
         tree.Project("WeightHist","Weight");
     
         weight = WeightHist.GetMean()
+        print "wt from WeightHist =    "+str(weight)
 
+        print "Before applying getWeight = "+str(getWeight)
         if(getWeight):
             xsecHist = ROOT.TH1F("xsecHist","xsecHist",1,0,1000000000)
             tree.Project("xsecHist","CrossSection")
@@ -347,6 +352,8 @@ def getTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
             weight = xsection/nEvents;
             if(weight < 0):
                 weight *= -1;
+            print "wt from L*sigma/Nevts = "+str(weight)
+        print "wt applied = "+str(weight)
         sampleLumi = Zkapa/(weight*1000.)
 
         weight *= 1000*doLumi/Zkapa
@@ -359,9 +366,11 @@ def setTreeWeight(File,  doLumi=None,  treeName=None, removeZkfactor=None, getWe
     if(treeName==None):
         treeName="tree"
 
+    print "In setTreeWeight, File = "+str(File)
     f = ROOT.TFile(File,"update")
     tree = f.Get(treeName)
 
+    print "Before calling getTreeWeight getWeight = "+str(getWeight)+", type(getWeight) = "+str(type(getWeight))
     weight = getTreeWeight(File, doLumi, treeName, removeZkfactor, getWeight, setWeight, doNoisy)
   
     tree.SetWeight(weight)
@@ -372,7 +381,8 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
     if(doLumi==None):
         doLumi = 36.1
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
+        # treeLoc = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12"
+        treeLoc = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12"
     if(treeName==None):
         treeName = "tree"
     if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
@@ -555,14 +565,14 @@ def getFileList(sample, doLumi=None, treeLoc=None, treeName=None, removeZkfactor
             fileList.append(treeLoc+"/tree_GJetLDP_CleanVars/tree_SinglePhoton_2016H3.root") 
     elif('zinv' in sample):
         if('LDP' not in sample):
-            #setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-100to200.root", doLumi, treeName, removeZkfactor)
+            setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-100to200.root", doLumi, treeName, removeZkfactor)
             setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-200to400.root", doLumi, treeName, removeZkfactor)
             setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-400to600.root", doLumi, treeName, removeZkfactor)
             setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-600to800.root", doLumi, treeName, removeZkfactor)
             setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-800to1200.root", doLumi, treeName, removeZkfactor)
             setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-1200to2500.root", doLumi, treeName, removeZkfactor)
             setTreeWeight(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-2500toInf.root", doLumi, treeName, removeZkfactor)
-            #fileList.append(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-100to200.root") 
+            fileList.append(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-100to200.root") 
             fileList.append(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-200to400.root") 
             fileList.append(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-400to600.root") 
             fileList.append(treeLoc+"/tree_signal/tree_ZJetsToNuNu_HT-600to800.root") 
@@ -1380,7 +1390,7 @@ def getChain(sample, doLumi=None, treeName=None, doProof=None, treeLoc=None, rem
     if(doProof==None):
         doProof = False
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
+        treeLoc = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12"
     if(treeName==None):
         treeName = "tree"
     if(removeZkfactor==None and ('zinv' in sample or 'dy' in sample)):
@@ -1397,6 +1407,7 @@ def getChain(sample, doLumi=None, treeName=None, doProof=None, treeLoc=None, rem
     files = getFileList(sample, doLumi, treeLoc, treeName, removeZkfactor)
 
     for f in files:
+        print "f = "+str(f)
         chain.Add(f)
 
     if(doProof):
@@ -1443,7 +1454,7 @@ def getCuts(code, nJetBin=None, bJetBin=None, kinBin=None, trig=None, dphiCut=No
         applySF=False
     if(njSplit==None):
         njSplit=False
-    if(applyPuWeight==None):
+    if(applyPuWeight is not True):
         applyPuWeight=False
     
     #####################################################################
@@ -1844,7 +1855,7 @@ def getDist(sample, dist, distRange=None, nBins=None, doVarBinning=None, binning
         if('LDP' not in sample):
             sample+='LDP'
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
+        treeLoc = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12"
     if(applyEffs==None):
         applyEffs=False
     if(treeName==None):
@@ -2089,15 +2100,20 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
         if('LDP' not in sample):
             sample+='LDP'
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
+        treeLoc = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12"
     if(applyEffs==None):
-        applEffs=False
+        applyEffs=False
     if(treeName==None):
         treeName = "tree"
     if(applySF==None):
         applySF=False
-    if(applyPuWeight==None):
+    puhist = None
+    if(applyPuWeight is None):
         applyPuWeight=False
+    elif((applyPuWeight is not False) and (applyPuWeight is not True)):
+        pufile = ROOT.TFile.Open(applyPuWeight, "READ")
+        if (pufile.IsOpen()):
+            puhist = pufile.Get("pu_weights_down")
     if(extraCuts==None):
         extraCuts=""
 
@@ -2109,7 +2125,10 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
     # chain samples according to code
     #################################################################################
 
+    print ""
+    print "Getting the chain"
     chain = getChain(sample, doLumi, treeName, doProof, treeLoc, removeZkfactor)
+    print "Done getting the chain; weight = "+str(chain.GetWeight())
 
     #################################################################################
     # end chain samples according to code
@@ -2232,6 +2251,17 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
     if(('IDP' in sample) or ('LDP' in sample)):
         sample = sample[:-3]
 
+    if (puhist is not None):
+        ROOT.v5.TFormula.SetMaxima(10000,1000,1000)
+        customPuWeight = ""
+        NpuBins = puhist.GetNbinsX()
+        for nv in range(1, NpuBins):
+            xlow = puhist.GetBinLowEdge(nv)
+            xhigh = puhist.GetBinLowEdge(nv+1)
+            customPuWeight += "((TrueNumInteractions>="+str(xlow)+"&&TrueNumInteractions<"+str(xhigh)+")*"+str(puhist.GetBinContent(nv))+")+"
+        customPuWeight += "((TrueNumInteractions>="+str(puhist.GetBinLowEdge(NpuBins))+")*"+str(puhist.GetBinContent(NpuBins))+")"
+
+    print "applyEffs = "+str(applyEffs)+", "+str(type(applyEffs))+", puhist = "+str(puhist)+", "+str(type(puhist))
     Bin = 1
     uncutBin = 0
     for nj in njRange:
@@ -2242,8 +2272,11 @@ def getHist(sample, njRange=None, nbRange=None, kinRange=None, doLumi=None, remo
                     continue
 
                 cuts = getCuts(cutCode[sample], nj, nb, kin, trig, dphiCut, ExtraFilters, applyMassCut, applyPtCut, applyHTCut, applyMHTCut, applyNJetsCut, applySF,njSplit=njSplit,applyPuWeight=applyPuWeight,extraWeight=extraWeight)
+                print str(Bin)+": "+str(cuts)
                 if(applyEffs):
                     cuts*=getEffWeights(sample)
+                if (puhist is not None):
+                    cuts *= customPuWeight
 
                 chain.Project(ecplotlabel,"nAllVertices",str(cuts))
 
@@ -3748,7 +3781,7 @@ def getDoubleRatioGraph(dist, binning=None, extraCuts=None, nJetBin=None, bJetBi
     if(dphiCut==None):
         dphiCut = 'sig'
     if(treeLoc==None):
-        treeLoc = "/home/ww/work/data/lpcTrees/Skims/Run2ProductionV11"
+        treeLoc = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12"
     if(applyEffs==None):
         applyEffs=True
     if(treeName==None):
