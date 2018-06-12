@@ -12,6 +12,7 @@
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TLorentzVector.h>
+#include <TTreeFormula.h>
 
 class RA2bZinvAnalysis {
 
@@ -21,9 +22,23 @@ public:
   virtual ~RA2bZinvAnalysis() {};
 
   TChain* getChain(const char* sample);
+  std::vector<TH1F*> makeHistograms(const char* sample);
   TH1F* makeCChist(const char* sample);
   TCut getCuts(const TString sampleKey);
   int kinBin(double& ht, double& mht);
+  struct hist1D {
+    TH1F* hist;
+    const char* name;
+    const char* title;
+    Int_t Nbins;
+    Double_t lowEdge;
+    Double_t highEdge;
+    Double_t* dvalue;
+    Int_t* ivalue;
+    TString* omitCut;
+    TString NminusOneCuts;
+    TTreeFormula* NminusOneFormula;
+  };
 
 private:
   const char* treeLoc_;
@@ -56,9 +71,13 @@ private:
   string_map sampleKeyMap_;
   string_map bTagSF_;
   ivector_map toCCbin_;
+  TString HTcut_;
+  TString MHTcut_;
+  TString NJetscut_;
 
   void fillFileMap();
   void fillCutMaps();
+  void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
 
 #include "LeafDeclaration_V12.h"
 
@@ -71,7 +90,6 @@ private:
 // #include <TLegend.h>
 // #include <TGraphAsymmErrors.h>
 #include <TFile.h>
-#include <TTreeFormula.h>
 #include <TString.h>
 #include <TRegexp.h>
 #include <TCut.h>
@@ -128,12 +146,12 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     nbThresholds_ = {0, 1, 2, 3};
 
     Int_t bin = 0;
-    for (unsigned j = 0; j < nJetThresholds_.size(); ++j)
+    for (unsigned j = 0; j < nJetThresholds_.size(); ++j) {
       for (unsigned b = 0; b < nbThresholds_.size(); ++b) {
 	if (nbThresholds_[b] > nJetThresholds_[j]) continue;  // Exclude (Njets0, Nb3)
 	unsigned mmax = deltaPhi_ == TString("nominal") ? kinThresholds_.size()-1 : kinThresholds_.size();
 	int k = -1;
-	for (unsigned m = 0; m < mmax; ++m)
+	for (unsigned m = 0; m < mmax; ++m) {
 	  for (unsigned h = 1; h < kinThresholds_[m].size(); ++h) {
 	    k++;
 	    if (j > 2 && (m < 2 || m == kinThresholds_.size()-1) && h == 1) continue;   // Exclude (Njets3,4; HT0,3,(6))
@@ -142,7 +160,9 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
 	    toCCbin_[jbk] = bin;
 	    // cout << "Filling toCCbin; j = " << j << ", b = "  << b << ", k = " << k << ", bin = " << bin << endl;
 	  }
+	}
       }
+    }
   } // era 2016
 
   kinSize_ = 0;
@@ -219,14 +239,15 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     // 	if(extraCuts!=None):
     //     cuts+=extraCuts
 
-  TString HTcut(std::string("HT>=") + std::to_string(kinThresholds_[0][1]));
-  TString nJetsCut(std::string("NJets>=") + std::to_string(nJetThresholds_[0]));
-  cout << "HTcut = " << HTcut << ", nJetsCut = " << nJetsCut << endl;
+  HTcut_ = std::string("HT>=") + std::to_string(kinThresholds_[0][1]);
+  MHTcut_ = MHTCutMap_.at(deltaPhi_);
+  NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
+  cout << "HTcut_ = " << HTcut_ << ", NJetscut_ = " << NJetscut_ << endl;
 
   cuts += objCutMap_.at(sampleKey);
-  cuts += HTcut;
-  cuts += nJetsCut;
-  cuts += MHTCutMap_.at(deltaPhi_);
+  cuts += HTcut_;
+  cuts += NJetscut_;
+  cuts += MHTcut_;
   cuts += minDphiCutMap_.at(deltaPhi_);
   cuts += massCut;
   cuts += ptCut;
@@ -246,20 +267,117 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
  
 }
 
+void
+RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms) {
+  //
+  // Define N - 1 cuts, book histograms.  Traverse the chain and fill.
+  //
+  TCut baselineCuts = getCuts(sample);
+  cout << "baseline = " << endl << baselineCuts << endl;
+  TChain* chain = getChain(sample);
+  TObjArray* forNotify = new TObjArray;
+
+  for (auto & hg : histograms) {
+    hg->hist = new TH1F(hg->name, hg->title, hg->Nbins, hg->lowEdge, hg->highEdge);
+    hg->hist->SetOption("HIST");
+    hg->hist->SetMarkerSize(0);
+    hg->NminusOneCuts = baselineCuts;
+    if (hg->omitCut->Length() > 0) hg->NminusOneCuts(*(hg->omitCut)) = "1";
+    cout << "For sample " << sample << ", histo " << hg->name << ", hg->omitCut = " << *(hg->omitCut) << ", cuts = " << endl
+	 << hg->NminusOneCuts << endl;
+    hg->NminusOneFormula = new TTreeFormula(hg->name, hg->NminusOneCuts, chain);
+    forNotify->Add(hg->NminusOneFormula);
+  }
+  chain->SetNotify(forNotify);
+
+  Long64_t Nentries = chain->GetEntries();
+  cout << "Nentries in tree = " << Nentries << endl;
+  int count = 0;
+  for (Long64_t entry = 0; entry < Nentries; ++entry) {
+    count++;
+    if (count % 100000 == 0) cout << "Entry number " << count << endl;
+
+    chain->LoadTree(entry);
+    chain->GetEntry(entry);
+
+    Double_t puWeight = 1;
+    if (applyPuWeight_ && customPuWeight_) {
+      // This PU weight recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
+      puWeight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
+    }
+    Double_t eventWt = 1000*intLumi_*Weight*puWeight;
+    if (eventWt < 0) eventWt *= -1;
+
+    for (auto & hg : histograms) {
+      hg->NminusOneFormula->GetNdata();
+      double selWt = hg->NminusOneFormula->EvalInstance(0);
+      if (selWt != 0) {
+	Double_t x = 0;
+	if (hg->dvalue != nullptr) x = *(hg->dvalue);
+	else if (hg->ivalue != nullptr) x = *(hg->ivalue);
+	hg->hist->Fill(x, selWt*eventWt);
+      }
+    }
+  }
+}
+
+std::vector<TH1F*>
+RA2bZinvAnalysis::makeHistograms(const char* sample) {
+  //
+  // Define histograms, variables to fill, and cuts to be modified.
+  // Return a vector of histograms.
+  //
+  std::vector<hist1D*> histograms;
+
+  TString nullstring("");
+
+  hist1D hHT;
+  hHT.name = TString("hHT_") + TString(sample);  hHT.title = "HT";
+  hHT.Nbins = 60;  hHT.lowEdge = 0;  hHT.highEdge = 3000; // 
+  hHT.dvalue = &HT;  hHT.ivalue = nullptr;  hHT.omitCut = &HTcut_;
+  histograms.push_back(&hHT);
+
+  hist1D hMHT;
+  hMHT.name = TString("hMHT_") + TString(sample);  hMHT.title = "MHT";
+  hMHT.Nbins = 60;  hMHT.lowEdge = 0;  hMHT.highEdge = 3000;
+  hMHT.dvalue = &MHT;  hMHT.ivalue = nullptr;  hMHT.omitCut = &MHTcut_;
+  histograms.push_back(&hMHT);
+
+  hist1D hNJets;
+  hNJets.name = TString("hNJets_") + TString(sample);  hNJets.title = "NJets";
+  hNJets.Nbins = 20;  hNJets.lowEdge = 0;  hNJets.highEdge = 20;
+  hNJets.ivalue = &NJets;  hNJets.dvalue = nullptr;  hNJets.omitCut = &NJetscut_;
+  histograms.push_back(&hNJets);
+
+  hist1D hBTags;
+  hBTags.name = TString("hBTags_") + TString(sample);  hBTags.title = "BTags";
+  hBTags.Nbins = 20;  hBTags.lowEdge = 0;  hBTags.highEdge = 20;
+  hBTags.ivalue = &BTags;  hBTags.dvalue = nullptr;  hBTags.omitCut = &nullstring;
+  histograms.push_back(&hBTags);
+
+  bookAndFillHistograms(sample, histograms);
+
+  std::vector<TH1F*> theHists;
+  theHists.push_back(hHT.hist);
+  theHists.push_back(hMHT.hist);
+  theHists.push_back(hNJets.hist);
+  theHists.push_back(hBTags.hist);
+
+  return theHists;
+
+}
+
 TH1F*
 RA2bZinvAnalysis::makeCChist(const char* sample) {
-
+  //
+  // Book the analysis-binned histogram; traverse the chain, fill, and return it.
+  //
   Int_t MaxBins = toCCbin_.size();
   cout << "MaxBins = " << MaxBins << ", applyPuWeight = " << applyPuWeight_ << endl;
 
   TH1F* hCCbins = new TH1F("hCCbins", "Zinv background estimate", MaxBins, 0.5, MaxBins+0.5);
   hCCbins->SetOption("HIST");
   hCCbins->SetMarkerSize(0);
-
-  // TH1F* hTrueNint = new TH1F("hTrueNint", "Generated number of interactions", 50, 0, 50);
-  // TH1F* hmadHT = new TH1F("hmadHT", "Generated HT", 100, 0, 2500);
-  // TH1F* hHT = new TH1F("hHT", "HT", 100, 0, 2500);
-
   
   TChain* chain = getChain(sample);
   // chain->Print();
@@ -323,8 +441,6 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 
   }  // End loop over entries
 
-  // return hTrueNint;
-  // return hmadHT;
   return hCCbins;
 
 }
