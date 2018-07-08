@@ -5,7 +5,7 @@ This script makes the MC histogram for comparison to data prediction
 import RA2b
 
 ## set the luminosity of the MC samples
-doLumi = 24.5
+doLumi = 36.3
 
 ## get Zinv and ttZ histograms
 zinv = RA2b.getHist('zinv',applyPuWeight=True,doLumi=doLumi,removeZkfactor=False)

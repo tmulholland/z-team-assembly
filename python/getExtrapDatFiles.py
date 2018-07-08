@@ -171,7 +171,13 @@ for sample in doSample:
     subtractBins = removedBins[0]
     avoidBins = removedBins[1]
 
-    
+    ttz_err = 0.30
+
+    h_ttz_syst = h_pho_merged.Clone()
+
+    sumttz = [0.,0.,0.]
+    sumNottz = [0.,0.,0.]
+
     Bin = 1
     uncutBin = 0
     for nj in range(1,6):
@@ -183,10 +189,24 @@ for sample in doSample:
                 if(nj == 5 and nb>0):
                     nottz = h_pho_merged.GetBinContent(Bin)
                     ttz = ttz9p.GetBinContent(nb)
+                    sumttz[nb-1]+=ttz
+                    sumNottz[nb-1]+=nottz
                     if(nottz>0.):
                         h_pho_merged.SetBinContent(Bin,nottz+ttz)
                 Bin+=1
 
+    Bin = 1
+    uncutBin = 0
+    for nj in range(1,6):
+        for nb in range(4):
+            for kin in kinRange:
+                uncutBin+=1
+                if(uncutBin in avoidBins):
+                    continue
+                h_ttz_syst.SetBinContent(Bin,0)
+                if(nj == 5 and nb>0):                
+                    h_ttz_syst.SetBinContent(Bin,(sumttz[nb-1]*ttz_err)/(sumNottz[nb-1]+sumttz[nb-1]))
+                Bin+=1
 
     ## divide out the photon normalization
     ## this gives the extrapolation factors themselves
@@ -231,7 +251,7 @@ for sample in doSample:
     uncutBin = 0
     Bin = 1
     nbnjSubtract = 0
-    print "Njbin | Nbbin | Nmumu |  Nee  | Nb/0b   | stat | MC stat | syst+ | syst- | sysKin | sysPur"
+    print "Njbin | Nbbin | Nmumu |  Nee  | Nb/0b   | stat | MC stat | ttz SF | syst+ | syst- | sysKin | sysPur"
     for nj in range(1,6):
         for nb in range(4):
             if(nj==1 and nb==3):
@@ -241,13 +261,14 @@ for sample in doSample:
                 if(uncutBin in avoidBins):
                     continue
                 line = " "+njDict[nj]+"  |  "+nbDict[nb]+"  |   "
-                line+= str(zmm.GetBinContent(Bin))+"  |"+str(zee.GetBinContent(Bin))
-                line+= " | "+str(h_extrap.GetBinContent(Bin))
-                line+= " | "+str(statErr[(nj-1)*4+nb-nbnjSubtract])
-                line+= " | "+str(dyll_mc_corr.GetBinError((nj-1)*4+nb+1-nbnjSubtract)/max(dyll_mc_corr.GetBinContent((nj-1)*4+nb+1-nbnjSubtract),1))
-                line+= " | "+str(abs(h_pho_upsyst.GetBinContent(Bin)))
-                line+= " | "+str(abs(h_pho_dnsyst.GetBinContent(Bin)))
-                line+= " | "+str(systKin[nb])
-                line+= " | "+str(purSyst[nj-1][nb])
+                line+= str(zmm.GetBinContent(Bin))+"  | "+str(zee.GetBinContent(Bin))
+                line+= " | "+str(round(h_extrap.GetBinContent(Bin),4))
+                line+= " | "+str(round(statErr[(nj-1)*4+nb-nbnjSubtract],4))
+                line+= " | "+str(round(dyll_mc_corr.GetBinError((nj-1)*4+nb+1-nbnjSubtract)/max(dyll_mc_corr.GetBinContent((nj-1)*4+nb+1-nbnjSubtract),1),4))
+                line+= " | "+str(round(h_ttz_syst.GetBinContent(Bin),4))
+                line+= " | "+str(round(abs(h_pho_upsyst.GetBinContent(Bin)),4))
+                line+= " | "+str(round(abs(h_pho_dnsyst.GetBinContent(Bin)),4))
+                line+= " | "+str(round(systKin[nb],4))
+                line+= " | "+str(round(purSyst[nj-1][nb],4))
                 print line
                 Bin+=1
