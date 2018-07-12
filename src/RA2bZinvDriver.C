@@ -4,10 +4,11 @@
   root -l -b RA2bZinvLoadClasses.C RA2bZinvDriver.C
   */
 
-  bool doCCzvv = false;
-  bool doCCttzvv = false;
-  bool do1Dzvv = true;
-  bool do1Dttzvv = true;
+  bool doCCzvv = true;
+  bool doCCttzvv = true;
+  bool do1Dzvv = false;
+  bool do1Dttzvv = false;
+  bool doMakeClass = false;
 
   RA2bZinvAnalysis* analyzer = new RA2bZinvAnalysis();
 
@@ -44,14 +45,7 @@
     histos1D->Write();
   }
 
-  // TH1F* hTrueNint = analyzer->makeCChist("zinv");
-  // TH1F* hTrueNint_ttzvv = analyzer->makeCChist("ttzvv");
-  // hTrueNint->Add(hTrueNint_ttzvv);
-  // hTrueNint->SaveAs("hTrueNint.root");
-  // TH1F* hmadHT = analyzer->makeCChist("zinv");
-  // hmadHT->SaveAs("hmadHT.root");
-  // TH2F* hKinBinvsMHT = analyzer->make2Dhist("zinv");
-  //  hKinBinvsMHT->SaveAs(" hKinBinvsMHT.root");
+  if (doMakeClass) analyzer->runMakeClass("ttzvv", "V12");
 
   gApplication->Terminate(0);
 

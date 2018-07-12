@@ -2,17 +2,15 @@
 //  Zinv background prediction for RA2b analysis
 //  Loosely based on Troy Mulholland's python code
 //
-//  (see TreeMaker/TreeMaker/python/makeTreeFromMiniAOD_cff.py
-//   for tree branch names)
-//
 
-
-#include "TChain.h"
+#include <TChain.h>
 #include <TTreeReaderValue.h>
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TLorentzVector.h>
 #include <TTreeFormula.h>
+#include <TChainElement.h>
+#include "../../Analysis/btag/BTagCorrector.h"
 
 class RA2bZinvAnalysis {
 
@@ -21,11 +19,13 @@ public:
 
   virtual ~RA2bZinvAnalysis() {};
 
-  TChain* getChain(const char* sample);
+  TChain* getChain(const char* sample, Int_t* fCurrent=nullptr);
   std::vector<TH1F*> makeHistograms(const char* sample);
   TH1F* makeCChist(const char* sample);
   TCut getCuts(const TString sampleKey);
   int kinBin(double& ht, double& mht);
+  void runMakeClass(const char* sample, const char* ext);
+
   struct hist1D {
     TH1F* hist;
     const char* name;
@@ -51,9 +51,11 @@ private:
   bool applySF_;
   bool njSplit_;
   bool useTreeCCbin_;
+  bool applyBTagSF_;
   bool applyPuWeight_;
   bool customPuWeight_;
   TH1* puHist_;
+  const char* BTagSFfile_;
   std::vector< std::vector<double> > kinThresholds_;
   std::vector<int> nJetThresholds_;
   std::vector<int> nbThresholds_;
@@ -122,20 +124,24 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
   applySF_(false),
   njSplit_(false),
   useTreeCCbin_(true),
+  applyBTagSF_(true),
   applyPuWeight_(true),
-  customPuWeight_(true)
+  customPuWeight_(true)  // Substitute Kevin P recipe for the PuWeight in the tree
 {
   if (era_ == TString("2016")) {
     if (ntupleVersion_ == "V12") {
       // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";
       treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";
+      // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";
     }
     intLumi_ = 35.9;
 
     if (applyPuWeight_ && customPuWeight_) {
-      TFile* pufile = TFile::Open("../plots/histograms/PileupHistograms_0121_69p2mb_pm4p6.root","READ");
+      TFile* pufile = TFile::Open("../../Analysis/corrections/PileupHistograms_0121_69p2mb_pm4p6.root","READ");
       puHist_ = (TH1*) pufile->Get("pu_weights_down");
     }
+
+    BTagSFfile_ = "../../Analysis/btag/CSVv2_Moriond17_B_H_mod.csv";
 
     kinThresholds_.push_back({300, 300, 500, 1000});  // mht threshold, {ht thresholds}
     kinThresholds_.push_back({350, 350, 500, 1000});
@@ -178,7 +184,7 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
 #include "fillFileMap_V12.h"
 
 TChain*
-RA2bZinvAnalysis::getChain(const char* sample) {
+RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent) {
   TString theSample(sample);
   TString key;
   if (theSample.Contains("zinv")) key = TString("zinv");
@@ -190,6 +196,7 @@ RA2bZinvAnalysis::getChain(const char* sample) {
     chain->Add(file);
   }
 
+  if (fCurrent != nullptr) *fCurrent = -1;
   setBranchAddress(chain);
 
   return chain;
@@ -213,6 +220,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   TString ptCut;
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
     ptCut = "ZCandidates.Pt()>=200.";
+    // ptCut = "ZCandidates.Pt()>=100.";  // Troy revision
 
   if ((sampleKey == "photon") && applyPtCut_)
     ptCut = "Photons[0].Pt()>=200.";
@@ -223,11 +231,13 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   std::vector<TString> trigger;
   try {trigger = triggerMap_.at(sample);}
   catch (const std::out_of_range& oor) {trigger.clear();}
+  commonCuts = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision
+
   if (trigger.empty()) {
-    commonCuts = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";
+    // commonCuts = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision
     if (sampleKey=="photon") photonDeltaRcut = "madMinPhotonDeltaR>=0.4";
   } else {
-    commonCuts = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";
+    // commonCuts = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision
     int Ntrig = trigger.size();
     if (Ntrig > 1) trigCuts += TString("(");
     for (auto theTrigger : trigger)
@@ -242,7 +252,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   HTcut_ = std::string("HT>=") + std::to_string(kinThresholds_[0][1]);
   MHTcut_ = MHTCutMap_.at(deltaPhi_);
   NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
-  cout << "HTcut_ = " << HTcut_ << ", NJetscut_ = " << NJetscut_ << endl;
+  // cout << "HTcut_ = " << HTcut_ << ", NJetscut_ = " << NJetscut_ << endl;
 
   cuts += objCutMap_.at(sampleKey);
   cuts += HTcut_;
@@ -317,8 +327,12 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
 	else if (hg->ivalue != nullptr) x = *(hg->ivalue);
 	hg->hist->Fill(x, selWt*eventWt);
       }
-    }
-  }
+    }  // loop over histograms
+  }  // loop over entries
+
+  delete forNotify;
+  delete chain->GetCurrentFile();
+
 }
 
 std::vector<TH1F*>
@@ -370,7 +384,7 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
 TH1F*
 RA2bZinvAnalysis::makeCChist(const char* sample) {
   //
-  // Book the analysis-binned histogram; traverse the chain, fill, and return it.
+  // Book the analysis-binned histogram, fill, and return it.
   //
   Int_t MaxBins = toCCbin_.size();
   cout << "MaxBins = " << MaxBins << ", applyPuWeight = " << applyPuWeight_ << endl;
@@ -378,68 +392,107 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
   TH1F* hCCbins = new TH1F("hCCbins", "Zinv background estimate", MaxBins, 0.5, MaxBins+0.5);
   hCCbins->SetOption("HIST");
   hCCbins->SetMarkerSize(0);
-  
-  TChain* chain = getChain(sample);
-  // chain->Print();
-  // chain->MakeCode();
 
+  TObjArray* forNotify = new TObjArray;  // Allow for more than one TObject to notify of a new file
+  
+  Int_t fCurrent; //!current Tree number in a TChain
+  TChain* chain = getChain(sample, &fCurrent);
+
+  // chain->Print();
+
+  BTagCorrector* btagcorr = nullptr;
+  if (applyBTagSF_) {
+    btagcorr = new BTagCorrector;
+    btagcorr->SetCalib(BTagSFfile_);
+  }
+
+  // Get the baseline cuts, make a TreeFormula, and add it to the list
+  // of objects to be notified as new files in the chain are encountered
   TCut baselineCuts = getCuts(sample);
   cout << "baseline = " << baselineCuts << endl;
+  // See https://root-forum.cern.ch/t/how-to-evaluate-a-formula-for-a-single-tree-event/12283
+  TTreeFormula* baselineTF = new TTreeFormula("baselineTF", baselineCuts, chain);
+  forNotify->Add(baselineTF);
+  chain->SetNotify(forNotify);
 
+  // Traverse the events in the chain
   Long64_t Nentries = chain->GetEntries();
   cout << "Nentries in tree = " << Nentries << endl;
   int count = 0, outCount = 0;
-  // See https://root-forum.cern.ch/t/how-to-evaluate-a-formula-for-a-single-tree-event/12283
-  TTreeFormula* select = new TTreeFormula("select", baselineCuts, chain);
-  chain->SetNotify(select);  // This is needed only for TChain.
   for (Long64_t entry = 0; entry < Nentries; ++entry) {
     count++;
-    if (count % 100000 == 0) cout << "Entry number " << count << endl;
-
+    if (count < 20 || count % 100000 == 0) cout << "Entry number " << count << endl;
     chain->LoadTree(entry);
-
-    select->GetNdata();
-    double selWt = select->EvalInstance(0);
-    if (selWt == 0) continue;
-    outCount++;
-    // if (outCount < 100) cout << "selWt = " << selWt << endl;
-
+    if (chain->GetTreeNumber() != fCurrent) {
+      fCurrent = chain->GetTreeNumber();
+      TFile* thisFile = chain->GetCurrentFile();
+      if (thisFile) {
+    	cout << "Current file in chain: " << thisFile->GetName() << endl;
+    	if (btagcorr) btagcorr->SetEffs(thisFile);
+      }
+    }
     chain->GetEntry(entry);
 
-    UInt_t binCC = 0;
-    if (useTreeCCbin_) {
-      binCC = RA2binBranch;
-    } else {
-      int binKin = kinBin(HT, MHT);
-      if (binKin < 0) continue;
-      int binNjets = nJetThresholds_.size()-1;
-      while (NJets < nJetThresholds_[binNjets]) binNjets--;
-      int binNb = nbThresholds_.size()-1;
-      while (BTags < nbThresholds_[binNb]) binNb--;
+    // Apply baseline selection
+    baselineTF->GetNdata();
+    double selWt = baselineTF->EvalInstance(0);
+    if (selWt == 0) continue;
+    outCount++;
 
-      std::vector<int> jbk = {binNjets, binNb, binKin};
-      try {
-    	binCC = toCCbin_.at(jbk);
-      }
-      catch (const std::out_of_range& oor) {
-    	// Omitted bins j = 3,4, k = 0,3
-    	// std::cerr << "jpk out of range: " << oor.what()
-    	// 	  << ": j = " << binNjets << ", b = " << binNb << ", k = " << binKin << ", RA2binBranch = " << RA2binBranch << '\n';
-    	continue;
-      }
-      if (outCount < 100) cout << "j = " << binNjets << ", b = " << binNb << ", k = " << binKin << ", binCC = " << binCC << ", RA2binBranch = " << RA2binBranch << ", Weight = " << Weight << endl;
-    }
-
+    // Compute event weight factors
     Double_t puWeight = 1;
     if (applyPuWeight_ && customPuWeight_) {
       // This recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
       puWeight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
+    if (count < 20 || count % 10000 == 0) cout << "puWeight = " << puWeight << endl;
     Double_t eventWt = 1000*intLumi_*Weight*selWt*puWeight;
     if (eventWt < 0) eventWt *= -1;
-    hCCbins->Fill(Double_t(binCC), eventWt);
+    if (count < 20 || count % 10000 == 0) cout << "eventWt = " << eventWt << endl;
 
+    UInt_t binCC = 0;
+    if (useTreeCCbin_ && !applyBTagSF_) {
+      binCC = RA2bin;
+      hCCbins->Fill(Double_t(binCC), eventWt);
+    } else {
+      std::vector<int> jbk;
+      int binKin = kinBin(HT, MHT);
+      if (binKin < 0) continue;
+      int binNjets = nJetThresholds_.size()-1;
+      while (NJets < nJetThresholds_[binNjets]) binNjets--;
+      if (!applyBTagSF_) {
+	int binNb = nbThresholds_.size()-1;
+	while (BTags < nbThresholds_[binNb]) binNb--;
+	jbk = {binNjets, binNb, binKin};
+	try {
+	  binCC = toCCbin_.at(jbk);
+	}
+	catch (const std::out_of_range& oor) {
+          // Omitted bins j = 3,4, k = 0,3
+	  // std::cerr << "jpk out of range: " << oor.what() << ": j = " << binNjets
+	  // 	    << ", b = " << binNb << ", k = " << binKin << ", RA2bin = " << RA2bin << '\n';
+	  continue;
+	}
+	// if (outCount < 100) cout << "j = " << binNjets << ", b = " << binNb << ", k = " << binKin << ", binCC = " << binCC << ", RA2bin = " << RA2bin << ", Weight = " << Weight << endl;
+	hCCbins->Fill(Double_t(binCC), eventWt);
+      } else {  // apply BTagSF to all Nb bins
+	// if (count < 20 || count % 10000 == 0) cout << "Size of input Jets = " << Jets->size() << ", Jets_hadronFlavor = " << Jets_hadronFlavor->size() << " Jets_HTMask = " << Jets_HTMask->size() << endl;
+	vector<double> probNb = btagcorr->GetCorrections(Jets, Jets_hadronFlavor, Jets_HTMask);
+	for (int binNb = 0; binNb < (int) nbThresholds_.size(); ++binNb) {
+	  jbk = {binNjets, binNb, binKin};
+	  try {binCC = toCCbin_.at(jbk);}
+	  catch (const std::out_of_range& oor) {continue;}
+	  if (count % 100000 == 0) cout << "j = " << binNjets << ", NbTags = " << BTags << ", b = " << binNb << ", b wt = " << probNb[binNb] << ", k = " << binKin << ", binCC = " << binCC << ", Weight = " << Weight << endl;
+	  hCCbins->Fill(Double_t(binCC), eventWt*probNb[binNb]);
+	}
+      }  // if apply BTagSF
+    }  // if useTreeCCbin
   }  // End loop over entries
+
+  delete forNotify;
+  delete baselineTF;
+  if (btagcorr) delete btagcorr;
+  delete chain->GetCurrentFile();
 
   return hCCbins;
 
@@ -555,12 +608,22 @@ RA2bZinvAnalysis::fillCutMaps() {
   bTagSF_["3"] = "BTagsSF[3]*(1)";
   bTagSF_["none"] = "(1)";
 
-  triggerMap_["zmm"] = {"22", "23", "29", "17"};
-  triggerMap_["zee"] = {"6", "7", "12", "3"};
+  triggerMap_["zmm"] = {"22", "23", "29", "18", "20"};
+  triggerMap_["zee"] = {"6", "7", "11", "12", "3", "4"};
   triggerMap_["zll"].reserve(triggerMap_["zmm"].size() + triggerMap_["zee"].size());
   triggerMap_["zll"] = triggerMap_["zmm"];
   triggerMap_["zll"].insert(triggerMap_["zll"].end(), triggerMap_["zee"].begin(), triggerMap_["zee"].end());
-  triggerMap_["photon"] = {"51"};
-  triggerMap_["sig"] = {"29", "33"};
+  triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco
+  triggerMap_["sig"] = {"42", "43", "44", "46", "47", "48"};
+  triggerMap_["sle"] = triggerMap_["sig"];
+  triggerMap_["slm"] = triggerMap_["sig"];
 
+}
+
+void
+RA2bZinvAnalysis::runMakeClass(const char* sample, const char* ext) {
+  TChain* chain = getChain(sample);
+  TString templateName("TreeMkrTemplate_");
+  templateName += ext;
+  chain->MakeClass(templateName.Data());
 }
