@@ -3,6 +3,12 @@
 //  Loosely based on Troy Mulholland's python code
 //
 
+#ifndef RA2BZINVANALYSIS_H
+#define RA2BZINVANALYSIS_H
+
+#define ISMC
+#undef ISMC
+
 #include <TChain.h>
 #include <TTreeReaderValue.h>
 #include <TH1F.h>
@@ -10,7 +16,9 @@
 #include <TLorentzVector.h>
 #include <TTreeFormula.h>
 #include <TChainElement.h>
+#ifdef ISMC
 #include "../../Analysis/btag/BTagCorrector.h"
+#endif
 
 class RA2bZinvAnalysis {
 
@@ -51,11 +59,13 @@ private:
   bool applySF_;
   bool njSplit_;
   bool useTreeCCbin_;
+#ifdef ISMC
   bool applyBTagSF_;
   bool applyPuWeight_;
   bool customPuWeight_;
   TH1* puHist_;
   const char* BTagSFfile_;
+#endif
   std::vector< std::vector<double> > kinThresholds_;
   std::vector<int> nJetThresholds_;
   std::vector<int> nbThresholds_;
@@ -71,7 +81,6 @@ private:
   string_map minDphiCutMap_;
   string_map MHTCutMap_;
   string_map sampleKeyMap_;
-  string_map bTagSF_;
   ivector_map toCCbin_;
   TString HTcut_;
   TString MHTcut_;
@@ -81,7 +90,11 @@ private:
   void fillCutMaps();
   void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
 
-#include "LeafDeclaration_V12.h"
+#ifdef ISMC
+#include "LeafDeclaration_MC_V12.h"
+#else
+#include "LeafDeclaration_data_V12.h"
+#endif
 
   ClassDef(RA2bZinvAnalysis, 1) // 2nd arg is ClassVersionID
 };
@@ -123,10 +136,12 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
   applyPtCut_(true),
   applySF_(false),
   njSplit_(false),
-  useTreeCCbin_(true),
-  applyBTagSF_(true),
+  useTreeCCbin_(true)
+#ifdef ISMC
+  , applyBTagSF_(true),
   applyPuWeight_(true),
   customPuWeight_(true)  // Substitute Kevin P recipe for the PuWeight in the tree
+#endif
 {
   if (era_ == TString("2016")) {
     if (ntupleVersion_ == "V12") {
@@ -136,12 +151,14 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     }
     intLumi_ = 35.9;
 
+#ifdef ISMC
     if (applyPuWeight_ && customPuWeight_) {
       TFile* pufile = TFile::Open("../../Analysis/corrections/PileupHistograms_0121_69p2mb_pm4p6.root","READ");
       puHist_ = (TH1*) pufile->Get("pu_weights_down");
     }
 
     BTagSFfile_ = "../../Analysis/btag/CSVv2_Moriond17_B_H_mod.csv";
+#endif
 
     kinThresholds_.push_back({300, 300, 500, 1000});  // mht threshold, {ht thresholds}
     kinThresholds_.push_back({350, 350, 500, 1000});
@@ -189,9 +206,17 @@ RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent) {
   TString key;
   if (theSample.Contains("zinv")) key = TString("zinv");
   else if (theSample.Contains("ttzvv")) key = TString("ttzvv");
+  else if (theSample.Contains("zmm")) key = TString("zmm");
+  else if (theSample.Contains("zee")) key = TString("zee");
 
   TChain* chain = new TChain(treeName_);
-  for (auto file : fileMap_.at(key)) {
+  std::vector<TString> files;
+  try {files = fileMap_.at(key);}
+  catch (const std::out_of_range& oor) {
+    std::cerr << oor.what() << " getChain: sample key (" << key << ") not found in fileMap" << endl;
+    exit(2);
+  }
+  for (auto file : files) {
     cout << file << endl;
     chain->Add(file);
   }
@@ -268,10 +293,12 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     //     cuts*=bJetCutsSF[bJetBin]
     // 	else:
     //     cuts+=bJetCuts[bJetBin]
+#ifdef ISMC
   if(applyPuWeight_ && !customPuWeight_) cuts *= "puWeight*(1)";
     // 	  if(type(extraWeight) is str):
     //     extraWeight+="*(1)"
     //     cuts*=extraWeight
+#endif
 
   return cuts;
  
@@ -310,13 +337,16 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
     chain->LoadTree(entry);
     chain->GetEntry(entry);
 
-    Double_t puWeight = 1;
+    Double_t eventWt = 1;
+    Double_t PUweight = 1;
+#ifdef ISMC
     if (applyPuWeight_ && customPuWeight_) {
       // This PU weight recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
-      puWeight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
+      PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
-    Double_t eventWt = 1000*intLumi_*Weight*puWeight;
+    Double_t eventWt = 1000*intLumi_*Weight*PUweight;
     if (eventWt < 0) eventWt *= -1;
+#endif
 
     for (auto & hg : histograms) {
       hg->NminusOneFormula->GetNdata();
@@ -387,7 +417,7 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
   // Book the analysis-binned histogram, fill, and return it.
   //
   Int_t MaxBins = toCCbin_.size();
-  cout << "MaxBins = " << MaxBins << ", applyPuWeight = " << applyPuWeight_ << endl;
+  cout << "MaxBins = " << MaxBins << endl;
 
   TH1F* hCCbins = new TH1F("hCCbins", "Zinv background estimate", MaxBins, 0.5, MaxBins+0.5);
   hCCbins->SetOption("HIST");
@@ -400,11 +430,13 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 
   // chain->Print();
 
+#ifdef ISMC
   BTagCorrector* btagcorr = nullptr;
   if (applyBTagSF_) {
     btagcorr = new BTagCorrector;
     btagcorr->SetCalib(BTagSFfile_);
   }
+#endif
 
   // Get the baseline cuts, make a TreeFormula, and add it to the list
   // of objects to be notified as new files in the chain are encountered
@@ -428,10 +460,14 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       TFile* thisFile = chain->GetCurrentFile();
       if (thisFile) {
     	cout << "Current file in chain: " << thisFile->GetName() << endl;
+#ifdef ISMC
     	if (btagcorr) btagcorr->SetEffs(thisFile);
+#endif
       }
     }
     chain->GetEntry(entry);
+
+    UInt_t binCC = 0;
 
     // Apply baseline selection
     baselineTF->GetNdata();
@@ -440,18 +476,22 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
     outCount++;
 
     // Compute event weight factors
-    Double_t puWeight = 1;
+    Double_t eventWt = 1;
+    Double_t PUweight = 1;
+#ifdef ISMC
     if (applyPuWeight_ && customPuWeight_) {
       // This recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
-      puWeight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
+      PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
-    if (count < 20 || count % 10000 == 0) cout << "puWeight = " << puWeight << endl;
-    Double_t eventWt = 1000*intLumi_*Weight*selWt*puWeight;
+    if (count < 20 || count % 10000 == 0) cout << "PUweight = " << PUweight << endl;
+    Double_t eventWt = 1000*intLumi_*Weight*selWt*PUweight;
     if (eventWt < 0) eventWt *= -1;
     if (count < 20 || count % 10000 == 0) cout << "eventWt = " << eventWt << endl;
 
-    UInt_t binCC = 0;
     if (useTreeCCbin_ && !applyBTagSF_) {
+#else
+    if (useTreeCCbin_) {
+#endif
       binCC = RA2bin;
       hCCbins->Fill(Double_t(binCC), eventWt);
     } else {
@@ -460,7 +500,9 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       if (binKin < 0) continue;
       int binNjets = nJetThresholds_.size()-1;
       while (NJets < nJetThresholds_[binNjets]) binNjets--;
+#ifdef ISMC
       if (!applyBTagSF_) {
+#endif
 	int binNb = nbThresholds_.size()-1;
 	while (BTags < nbThresholds_[binNb]) binNb--;
 	jbk = {binNjets, binNb, binKin};
@@ -473,8 +515,9 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 	  // 	    << ", b = " << binNb << ", k = " << binKin << ", RA2bin = " << RA2bin << '\n';
 	  continue;
 	}
-	// if (outCount < 100) cout << "j = " << binNjets << ", b = " << binNb << ", k = " << binKin << ", binCC = " << binCC << ", RA2bin = " << RA2bin << ", Weight = " << Weight << endl;
+	// if (outCount < 100) cout << "j = " << binNjets << ", b = " << binNb << ", k = " << binKin << ", binCC = " << binCC << ", RA2bin = " << RA2bin << endl;
 	hCCbins->Fill(Double_t(binCC), eventWt);
+#ifdef ISMC
       } else {  // apply BTagSF to all Nb bins
 	// if (count < 20 || count % 10000 == 0) cout << "Size of input Jets = " << Jets->size() << ", Jets_hadronFlavor = " << Jets_hadronFlavor->size() << " Jets_HTMask = " << Jets_HTMask->size() << endl;
 	vector<double> probNb = btagcorr->GetCorrections(Jets, Jets_hadronFlavor, Jets_HTMask);
@@ -482,17 +525,20 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 	  jbk = {binNjets, binNb, binKin};
 	  try {binCC = toCCbin_.at(jbk);}
 	  catch (const std::out_of_range& oor) {continue;}
-	  if (count % 100000 == 0) cout << "j = " << binNjets << ", NbTags = " << BTags << ", b = " << binNb << ", b wt = " << probNb[binNb] << ", k = " << binKin << ", binCC = " << binCC << ", Weight = " << Weight << endl;
+	  if (count % 100000 == 0) cout << "j = " << binNjets << ", NbTags = " << BTags << ", b = " << binNb << ", b wt = " << probNb[binNb] << ", k = " << binKin << ", binCC = " << binCC << endl;
 	  hCCbins->Fill(Double_t(binCC), eventWt*probNb[binNb]);
 	}
       }  // if apply BTagSF
+#endif
     }  // if useTreeCCbin
   }  // End loop over entries
 
   delete forNotify;
   delete baselineTF;
-  if (btagcorr) delete btagcorr;
   delete chain->GetCurrentFile();
+#ifdef ISMC
+  if (btagcorr) delete btagcorr;
+#endif
 
   return hCCbins;
 
@@ -602,12 +648,6 @@ RA2bZinvAnalysis::fillCutMaps() {
   MHTCutMap_["hdp"] = "MHT>=250";
   MHTCutMap_["ldp"] = "MHT>=250";
 
-  bTagSF_["0"] = "BTagsSF[0]*(1)";
-  bTagSF_["1"] = "BTagsSF[1]*(1)";
-  bTagSF_["2"] = "BTagsSF[2]*(1)";
-  bTagSF_["3"] = "BTagsSF[3]*(1)";
-  bTagSF_["none"] = "(1)";
-
   triggerMap_["zmm"] = {"22", "23", "29", "18", "20"};
   triggerMap_["zee"] = {"6", "7", "11", "12", "3", "4"};
   triggerMap_["zll"].reserve(triggerMap_["zmm"].size() + triggerMap_["zee"].size());
@@ -627,3 +667,5 @@ RA2bZinvAnalysis::runMakeClass(const char* sample, const char* ext) {
   templateName += ext;
   chain->MakeClass(templateName.Data());
 }
+
+#endif

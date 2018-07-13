@@ -4,10 +4,12 @@
   root -l -b RA2bZinvLoadClasses.C RA2bZinvDriver.C
   */
 
-  bool doCCzvv = true;
-  bool doCCttzvv = true;
+  bool doCCzvv = false;
+  bool doCCttzvv = false;
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
+  bool do1Dzmm = true;
+  bool do1Dzee = true;
   bool doMakeClass = false;
 
   RA2bZinvAnalysis* analyzer = new RA2bZinvAnalysis();
@@ -45,7 +47,20 @@
     histos1D->Write();
   }
 
-  if (doMakeClass) analyzer->runMakeClass("ttzvv", "V12");
+  if (do1Dzmm || do1Dzee) {
+    TFile *histos1D = TFile::Open("histsDY.root", "RECREATE");
+    if (do1Dzmm) {
+      std::vector<TH1F*> h_zmm = analyzer->makeHistograms("zmm");
+      for (auto& theHist : h_zmm) theHist->Draw();
+    }
+    if (do1Dzee) {
+      std::vector<TH1F*> h_zee = analyzer->makeHistograms("zee");
+      for (auto& theHist : h_zee) theHist->Draw();
+    }
+    histos1D->Write();
+  }
+
+  if (doMakeClass) analyzer->runMakeClass("zmm", "data_V12");
 
   gApplication->Terminate(0);
 

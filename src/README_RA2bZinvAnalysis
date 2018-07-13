@@ -60,9 +60,14 @@ runMakeClass method to generate a TreeMkrTemplate_Vxx.h file.  With a
 little editing one then embeds the tree-specific information from this
 file into LeafDeclaration_Vxx.h.  See 
 diff_TreeMkrTemplate_V12.h-LeafDeclaration_V12.h
-for guidance.  Someone with fresh skills in some parsing language will
+for guidance.  (Someone with fresh skills in some parsing language will
 doubtless write a macro to do this transformation, probably in "15
-minutes". 
+minutes".)
+
+The contents of the tree are quite different between data and MC, so
+separate LeafDeclaration headers are needed.  A processor directive at
+the top of RA2bZinvAnalysis.C defines ISMC to control compilation of
+code that is valid only for MC.
 
 Again, for a new Treemaker version, the section of the RA2bZinvAnalysis
 constructor under if (ntupleVersion_ = "Vxx") will need to be added.
