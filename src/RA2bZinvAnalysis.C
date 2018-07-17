@@ -43,9 +43,11 @@ public:
     Double_t highEdge;
     Double_t* dvalue;
     Int_t* ivalue;
+    void (RA2bZinvAnalysis::*filler)(TH1F* h, double wt);
     TString* omitCut;
     TString NminusOneCuts;
     TTreeFormula* NminusOneFormula;
+    hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr) {}
   };
 
 private:
@@ -85,6 +87,7 @@ private:
   TString HTcut_;
   TString MHTcut_;
   TString NJetscut_;
+  TString massCut_;
 
   void fillFileMap();
   void fillCutMaps();
@@ -95,6 +98,9 @@ private:
 #else
 #include "LeafDeclaration_data_V12.h"
 #endif
+
+  // Functions to fill histograms with non-double, non-int types
+  void fillZmass(TH1F* h, double wt) {for (auto & theZ : *ZCandidates) h->Fill(theZ.M(), wt);}
 
   ClassDef(RA2bZinvAnalysis, 1) // 2nd arg is ClassVersionID
 };
@@ -238,9 +244,8 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     return cuts;
   }
 
-  TString massCut;
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
-    massCut = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
+    massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
 
   TString ptCut;
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
@@ -277,14 +282,13 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   HTcut_ = std::string("HT>=") + std::to_string(kinThresholds_[0][1]);
   MHTcut_ = MHTCutMap_.at(deltaPhi_);
   NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
-  // cout << "HTcut_ = " << HTcut_ << ", NJetscut_ = " << NJetscut_ << endl;
 
   cuts += objCutMap_.at(sampleKey);
   cuts += HTcut_;
   cuts += NJetscut_;
   cuts += MHTcut_;
   cuts += minDphiCutMap_.at(deltaPhi_);
-  cuts += massCut;
+  cuts += massCut_;
   cuts += ptCut;
   cuts += photonDeltaRcut;
   cuts += commonCuts;
@@ -352,10 +356,10 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       hg->NminusOneFormula->GetNdata();
       double selWt = hg->NminusOneFormula->EvalInstance(0);
       if (selWt != 0) {
-	Double_t x = 0;
-	if (hg->dvalue != nullptr) x = *(hg->dvalue);
-	else if (hg->ivalue != nullptr) x = *(hg->ivalue);
-	hg->hist->Fill(x, selWt*eventWt);
+	if (hg->dvalue != nullptr) hg->hist->Fill(*(hg->dvalue), selWt*eventWt);
+	else if (hg->ivalue != nullptr) hg->hist->Fill(Double_t(*(hg->ivalue)), selWt*eventWt);
+	else if (hg->filler != nullptr) (this->*(hg->filler))(hg->hist, selWt*eventWt);
+	else cerr << "No method to fill histogram provided for " << hg->name << endl;
       }
     }  // loop over histograms
   }  // loop over entries
@@ -370,6 +374,9 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   //
   // Define histograms, variables to fill, and cuts to be modified.
   // Return a vector of histograms.
+  // For an event variable of type double (int), set member dvalue (ivalue)
+  // to point to the tree variable.  For other types of tree branches, supply
+  // a function to fill the histogram, and set member filler to point to it.
   //
   std::vector<hist1D*> histograms;
 
@@ -377,27 +384,33 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
 
   hist1D hHT;
   hHT.name = TString("hHT_") + TString(sample);  hHT.title = "HT";
-  hHT.Nbins = 60;  hHT.lowEdge = 0;  hHT.highEdge = 3000; // 
-  hHT.dvalue = &HT;  hHT.ivalue = nullptr;  hHT.omitCut = &HTcut_;
+  hHT.Nbins = 60;  hHT.lowEdge = 0;  hHT.highEdge = 3000;
+  hHT.dvalue = &HT;  hHT.omitCut = &HTcut_;
   histograms.push_back(&hHT);
 
   hist1D hMHT;
   hMHT.name = TString("hMHT_") + TString(sample);  hMHT.title = "MHT";
   hMHT.Nbins = 60;  hMHT.lowEdge = 0;  hMHT.highEdge = 3000;
-  hMHT.dvalue = &MHT;  hMHT.ivalue = nullptr;  hMHT.omitCut = &MHTcut_;
+  hMHT.dvalue = &MHT;  hMHT.omitCut = &MHTcut_;
   histograms.push_back(&hMHT);
 
   hist1D hNJets;
   hNJets.name = TString("hNJets_") + TString(sample);  hNJets.title = "NJets";
   hNJets.Nbins = 20;  hNJets.lowEdge = 0;  hNJets.highEdge = 20;
-  hNJets.ivalue = &NJets;  hNJets.dvalue = nullptr;  hNJets.omitCut = &NJetscut_;
+  hNJets.ivalue = &NJets;  hNJets.omitCut = &NJetscut_;
   histograms.push_back(&hNJets);
 
   hist1D hBTags;
   hBTags.name = TString("hBTags_") + TString(sample);  hBTags.title = "BTags";
   hBTags.Nbins = 20;  hBTags.lowEdge = 0;  hBTags.highEdge = 20;
-  hBTags.ivalue = &BTags;  hBTags.dvalue = nullptr;  hBTags.omitCut = &nullstring;
+  hBTags.ivalue = &BTags;  hBTags.omitCut = &nullstring;
   histograms.push_back(&hBTags);
+
+  hist1D hZmass;
+  hZmass.name = TString("hZmass_") + TString(sample);  hZmass.title = "Zmass";
+  hZmass.Nbins = 30;  hZmass.lowEdge = 60;  hZmass.highEdge = 120;
+  hZmass.filler = &RA2bZinvAnalysis::fillZmass;  hZmass.omitCut = &massCut_;
+  histograms.push_back(&hZmass);
 
   bookAndFillHistograms(sample, histograms);
 
@@ -406,6 +419,7 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   theHists.push_back(hMHT.hist);
   theHists.push_back(hNJets.hist);
   theHists.push_back(hBTags.hist);
+  theHists.push_back(hZmass.hist);
 
   return theHists;
 
