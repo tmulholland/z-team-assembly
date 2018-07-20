@@ -7,7 +7,7 @@
 #define RA2BZINVANALYSIS_H
 
 #define ISMC
-#undef ISMC
+// #undef ISMC
 
 #include <TChain.h>
 #include <TTreeReaderValue.h>
@@ -27,7 +27,7 @@ public:
 
   virtual ~RA2bZinvAnalysis() {};
 
-  TChain* getChain(const char* sample, Int_t* fCurrent=nullptr);
+  TChain* getChain(const char* sample, Int_t* fCurrent = nullptr, bool setBrAddr = true);
   std::vector<TH1F*> makeHistograms(const char* sample);
   TH1F* makeCChist(const char* sample);
   TCut getCuts(const TString sampleKey);
@@ -38,13 +38,14 @@ public:
     TH1F* hist;
     const char* name;
     const char* title;
+    std::pair<const char*, const char*> axisTitles;
     Int_t Nbins;
     Double_t lowEdge;
     Double_t highEdge;
     Double_t* dvalue;
     Int_t* ivalue;
     void (RA2bZinvAnalysis::*filler)(TH1F* h, double wt);
-    TString* omitCut;
+    std::vector<TString*> omitCut;
     TString NminusOneCuts;
     TTreeFormula* NminusOneFormula;
     hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr) {}
@@ -58,8 +59,9 @@ private:
   TString deltaPhi_;  // "nominal", "hdp", "ldp"
   bool applyMassCut_;
   bool applyPtCut_;
-  bool applySF_;
-  bool njSplit_;
+  bool applyMinDeltaRCut_;
+  // bool applySF_;
+  // bool njSplit_;
   bool useTreeCCbin_;
 #ifdef ISMC
   bool applyBTagSF_;
@@ -88,6 +90,7 @@ private:
   TString MHTcut_;
   TString NJetscut_;
   TString massCut_;
+  TString ptCut_;
 
   void fillFileMap();
   void fillCutMaps();
@@ -101,9 +104,12 @@ private:
 
   // Functions to fill histograms with non-double, non-int types
   void fillZmass(TH1F* h, double wt) {for (auto & theZ : *ZCandidates) h->Fill(theZ.M(), wt);}
+  void fillZpt(TH1F* h, double wt) {for (auto & theZ : *ZCandidates) h->Fill(theZ.Pt(), wt);}
 
   ClassDef(RA2bZinvAnalysis, 1) // 2nd arg is ClassVersionID
 };
+
+// ======================================================================================
 
 #include <TStyle.h>
 #include <TROOT.h>
@@ -130,6 +136,8 @@ using std::ifstream;
 
 ClassImp(RA2bZinvAnalysis)
 
+// ======================================================================================
+
 RA2bZinvAnalysis::RA2bZinvAnalysis() :
   era_("2016"),
   ntupleVersion_("V12"),
@@ -140,20 +148,22 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
   // deltaPhi_("hdp"),
   applyMassCut_(true),
   applyPtCut_(true),
-  applySF_(false),
-  njSplit_(false),
+  applyMinDeltaRCut_(true),
+  // applySF_(false),
+  // njSplit_(false),
   useTreeCCbin_(true)
 #ifdef ISMC
-  , applyBTagSF_(true),
-  applyPuWeight_(true),
+  , applyBTagSF_(false),
+  applyPuWeight_(false),
   customPuWeight_(true)  // Substitute Kevin P recipe for the PuWeight in the tree
 #endif
 {
   if (era_ == TString("2016")) {
     if (ntupleVersion_ == "V12") {
-      // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";
-      treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";
-      // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";
+      // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by wtford (Zjets only)
+      treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
+      // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // xrootd
+      // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
     }
     intLumi_ = 35.9;
 
@@ -202,16 +212,18 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
   fillFileMap();
   fillCutMaps();
 
-}
+}  // ======================================================================================
 
 #include "fillFileMap_V12.h"
 
 TChain*
-RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent) {
+RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent, bool setBrAddr) {
   TString theSample(sample);
   TString key;
   if (theSample.Contains("zinv")) key = TString("zinv");
   else if (theSample.Contains("ttzvv")) key = TString("ttzvv");
+  else if (theSample.Contains("dymm")) key = TString("dymm");
+  else if (theSample.Contains("dyee")) key = TString("dyee");
   else if (theSample.Contains("zmm")) key = TString("zmm");
   else if (theSample.Contains("zee")) key = TString("zee");
 
@@ -228,10 +240,10 @@ RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent) {
   }
 
   if (fCurrent != nullptr) *fCurrent = -1;
-  setBranchAddress(chain);
+  if (setBrAddr) setBranchAddress(chain);
 
   return chain;
-}
+}  // ======================================================================================
 
 TCut
 RA2bZinvAnalysis::getCuts(const TString sample) {
@@ -247,13 +259,9 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
     massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
 
-  TString ptCut;
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
-    ptCut = "ZCandidates.Pt()>=200.";
-    // ptCut = "ZCandidates.Pt()>=100.";  // Troy revision
-
-  if ((sampleKey == "photon") && applyPtCut_)
-    ptCut = "Photons[0].Pt()>=200.";
+    ptCut_ = "ZCandidates.Pt()>=200.";
+    // ptCut_ = "ZCandidates.Pt()>=100.";  // Troy revision
 
   TString photonDeltaRcut;
   TString commonCuts;
@@ -261,13 +269,12 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   std::vector<TString> trigger;
   try {trigger = triggerMap_.at(sample);}
   catch (const std::out_of_range& oor) {trigger.clear();}
-  commonCuts = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision
 
+  // commonCuts = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision+
   if (trigger.empty()) {
-    // commonCuts = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision
-    if (sampleKey=="photon") photonDeltaRcut = "madMinPhotonDeltaR>=0.4";
+    commonCuts = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision-
   } else {
-    // commonCuts = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision
+    commonCuts = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision-
     int Ntrig = trigger.size();
     if (Ntrig > 1) trigCuts += TString("(");
     for (auto theTrigger : trigger)
@@ -275,6 +282,11 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     if (Ntrig > 1) trigCuts.Replace(trigCuts.Length()-3, 3, ")");
   }
   cout << "trigCuts = " << trigCuts << endl;
+
+  if (sampleKey == "photon") {
+    if (applyPtCut_) ptCut_ = "Photons[0].Pt()>=200.";
+    if (trigger.empty() && applyMinDeltaRCut_) photonDeltaRcut = "madMinPhotonDeltaR>=0.4";
+  }
 				       
     // 	if(extraCuts!=None):
     //     cuts+=extraCuts
@@ -289,7 +301,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   cuts += MHTcut_;
   cuts += minDphiCutMap_.at(deltaPhi_);
   cuts += massCut_;
-  cuts += ptCut;
+  cuts += ptCut_;
   cuts += photonDeltaRcut;
   cuts += commonCuts;
   cuts += trigCuts;
@@ -306,26 +318,30 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
 
   return cuts;
  
-}
+}  // ======================================================================================
 
 void
 RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms) {
   //
-  // Define N - 1 cuts, book histograms.  Traverse the chain and fill.
+  // Define N - 1 (or N - multiple) cuts, book histograms.  Traverse the chain and fill.
   //
   TCut baselineCuts = getCuts(sample);
   cout << "baseline = " << endl << baselineCuts << endl;
-  TChain* chain = getChain(sample);
+  Int_t fCurrent; //!current Tree number in a TChain
+  TChain* chain = getChain(sample, &fCurrent);
   TObjArray* forNotify = new TObjArray;
 
   for (auto & hg : histograms) {
     hg->hist = new TH1F(hg->name, hg->title, hg->Nbins, hg->lowEdge, hg->highEdge);
+    hg->hist->GetXaxis()->SetTitle(hg->axisTitles.first);
+    hg->hist->GetYaxis()->SetTitle(hg->axisTitles.second);
     hg->hist->SetOption("HIST");
     hg->hist->SetMarkerSize(0);
     hg->NminusOneCuts = baselineCuts;
-    if (hg->omitCut->Length() > 0) hg->NminusOneCuts(*(hg->omitCut)) = "1";
-    cout << "For sample " << sample << ", histo " << hg->name << ", hg->omitCut = " << *(hg->omitCut) << ", cuts = " << endl
-	 << hg->NminusOneCuts << endl;
+    for (auto cutToOmit : hg->omitCut) hg->NminusOneCuts(*cutToOmit) = "1";
+    cout << "For sample " << sample << ", histo " << hg->name  << ", hg->omitCut = ";
+    for (auto cutToOmit : hg->omitCut) cout << *cutToOmit << " ";
+    cout << ", cuts = " << endl << hg->NminusOneCuts << endl;
     hg->NminusOneFormula = new TTreeFormula(hg->name, hg->NminusOneCuts, chain);
     forNotify->Add(hg->NminusOneFormula);
   }
@@ -339,6 +355,11 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
     if (count % 100000 == 0) cout << "Entry number " << count << endl;
 
     chain->LoadTree(entry);
+    if (chain->GetTreeNumber() != fCurrent) {
+      fCurrent = chain->GetTreeNumber();
+      TFile* thisFile = chain->GetCurrentFile();
+      if (thisFile) cout << "Current file in chain: " << thisFile->GetName() << endl;
+    }
     chain->GetEntry(entry);
 
     Double_t eventWt = 1;
@@ -348,7 +369,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       // This PU weight recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
       PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
-    Double_t eventWt = 1000*intLumi_*Weight*PUweight;
+    eventWt = 1000*intLumi_*Weight*PUweight;
     if (eventWt < 0) eventWt *= -1;
 #endif
 
@@ -367,7 +388,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   delete forNotify;
   delete chain->GetCurrentFile();
 
-}
+}  // ======================================================================================
 
 std::vector<TH1F*>
 RA2bZinvAnalysis::makeHistograms(const char* sample) {
@@ -378,39 +399,53 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   // to point to the tree variable.  For other types of tree branches, supply
   // a function to fill the histogram, and set member filler to point to it.
   //
-  std::vector<hist1D*> histograms;
+  // When drawing, control number of digits in axis labels by
+  // TGaxis myTGaxis;
+  // myTGaxis.SetMaxDigits(4);
 
-  TString nullstring("");
+  std::vector<hist1D*> histograms;
 
   hist1D hHT;
   hHT.name = TString("hHT_") + TString(sample);  hHT.title = "HT";
   hHT.Nbins = 60;  hHT.lowEdge = 0;  hHT.highEdge = 3000;
-  hHT.dvalue = &HT;  hHT.omitCut = &HTcut_;
+  hHT.axisTitles.first = "HT [GeV]";  hHT.axisTitles.second = "Events/50 GeV";
+  hHT.dvalue = &HT;  hHT.omitCut.push_back(&HTcut_);
   histograms.push_back(&hHT);
 
   hist1D hMHT;
   hMHT.name = TString("hMHT_") + TString(sample);  hMHT.title = "MHT";
   hMHT.Nbins = 60;  hMHT.lowEdge = 0;  hMHT.highEdge = 3000;
-  hMHT.dvalue = &MHT;  hMHT.omitCut = &MHTcut_;
+  hMHT.axisTitles.first = "MHT [GeV]";  hMHT.axisTitles.second = "Events/50 GeV";
+  hMHT.dvalue = &MHT;  hMHT.omitCut.push_back(&MHTcut_);  hMHT.omitCut.push_back(&ptCut_);
   histograms.push_back(&hMHT);
 
   hist1D hNJets;
   hNJets.name = TString("hNJets_") + TString(sample);  hNJets.title = "NJets";
   hNJets.Nbins = 20;  hNJets.lowEdge = 0;  hNJets.highEdge = 20;
-  hNJets.ivalue = &NJets;  hNJets.omitCut = &NJetscut_;
+  hNJets.axisTitles.first = "N (jets)";  hNJets.axisTitles.second = "Events/bin";
+  hNJets.ivalue = &NJets;  hNJets.omitCut.push_back(&NJetscut_);
   histograms.push_back(&hNJets);
 
   hist1D hBTags;
   hBTags.name = TString("hBTags_") + TString(sample);  hBTags.title = "BTags";
   hBTags.Nbins = 20;  hBTags.lowEdge = 0;  hBTags.highEdge = 20;
-  hBTags.ivalue = &BTags;  hBTags.omitCut = &nullstring;
+  hBTags.axisTitles.first = "N (b jets)";  hBTags.axisTitles.second = "Events/bin";
+  hBTags.ivalue = &BTags;
   histograms.push_back(&hBTags);
 
   hist1D hZmass;
-  hZmass.name = TString("hZmass_") + TString(sample);  hZmass.title = "Zmass";
+  hZmass.name = TString("hZmass_") + TString(sample);  hZmass.title = "Z mass";
   hZmass.Nbins = 30;  hZmass.lowEdge = 60;  hZmass.highEdge = 120;
-  hZmass.filler = &RA2bZinvAnalysis::fillZmass;  hZmass.omitCut = &massCut_;
+  hZmass.axisTitles.first = "M(Z) [GeV]";  hZmass.axisTitles.second = "Events/2 GeV";
+  hZmass.filler = &RA2bZinvAnalysis::fillZmass;  hZmass.omitCut.push_back(&massCut_);
   histograms.push_back(&hZmass);
+
+  hist1D hZpt;
+  hZpt.name = TString("hZpt_") + TString(sample);  hZpt.title = "Z Pt";
+  hZpt.Nbins = 60;  hZpt.lowEdge = 0;  hZpt.highEdge = 3000;
+  hZpt.axisTitles.first = "Pt(Z) [GeV]";  hZpt.axisTitles.second = "Events/50 GeV";
+  hZpt.filler = &RA2bZinvAnalysis::fillZpt;  hZpt.omitCut.push_back(&ptCut_);  hZpt.omitCut.push_back(&MHTcut_);
+  histograms.push_back(&hZpt);
 
   bookAndFillHistograms(sample, histograms);
 
@@ -420,10 +455,11 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   theHists.push_back(hNJets.hist);
   theHists.push_back(hBTags.hist);
   theHists.push_back(hZmass.hist);
+  theHists.push_back(hZpt.hist);
 
   return theHists;
 
-}
+}  // ======================================================================================
 
 TH1F*
 RA2bZinvAnalysis::makeCChist(const char* sample) {
@@ -498,7 +534,7 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
     if (count < 20 || count % 10000 == 0) cout << "PUweight = " << PUweight << endl;
-    Double_t eventWt = 1000*intLumi_*Weight*selWt*PUweight;
+    eventWt = 1000*intLumi_*Weight*selWt*PUweight;
     if (eventWt < 0) eventWt *= -1;
     if (count < 20 || count % 10000 == 0) cout << "eventWt = " << eventWt << endl;
 
@@ -556,7 +592,7 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 
   return hCCbins;
 
-}
+}  // ======================================================================================
 
 int
 RA2bZinvAnalysis::kinBin(double& ht, double& mht) {
@@ -585,7 +621,7 @@ RA2bZinvAnalysis::kinBin(double& ht, double& mht) {
     }
   }
   return -2;  // Outside binned area (e.g., MHT > HT), though within preselection
-}
+}  // ======================================================================================
 
 void
 RA2bZinvAnalysis::fillCutMaps() {
@@ -672,14 +708,15 @@ RA2bZinvAnalysis::fillCutMaps() {
   triggerMap_["sle"] = triggerMap_["sig"];
   triggerMap_["slm"] = triggerMap_["sig"];
 
-}
+}  // ======================================================================================
 
 void
 RA2bZinvAnalysis::runMakeClass(const char* sample, const char* ext) {
-  TChain* chain = getChain(sample);
+  TChain* chain = getChain(sample, nullptr, false);
   TString templateName("TreeMkrTemplate_");
   templateName += ext;
   chain->MakeClass(templateName.Data());
-}
+
+}  // ======================================================================================
 
 #endif

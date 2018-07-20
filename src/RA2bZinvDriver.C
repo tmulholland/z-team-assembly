@@ -8,8 +8,10 @@
   bool doCCttzvv = false;
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
-  bool do1Dzmm = true;
-  bool do1Dzee = true;
+  bool do1Dzmm = false;
+  bool do1Dzee = false;
+  bool do1Ddymm = false;
+  bool do1Ddyee = true;
   bool doMakeClass = false;
 
   RA2bZinvAnalysis* analyzer = new RA2bZinvAnalysis();
@@ -60,7 +62,23 @@
     histos1D->Write();
   }
 
-  if (doMakeClass) analyzer->runMakeClass("zmm", "data_V12");
+  if (do1Ddymm || do1Ddyee) {
+    TFile *histos1D = TFile::Open("histsDYMC.root", "RECREATE");
+    if (do1Ddymm) {
+      std::vector<TH1F*> h_dymm = analyzer->makeHistograms("dymm");
+      for (auto& theHist : h_dymm) theHist->Draw();
+    }
+    if (do1Ddyee) {
+      std::vector<TH1F*> h_dyee = analyzer->makeHistograms("dyee");
+      for (auto& theHist : h_dyee) theHist->Draw();
+    }
+    histos1D->Write();
+  }
+
+  if (doMakeClass) {
+    // analyzer->runMakeClass("zinv", "MC_V12");
+    // analyzer->runMakeClass("zmm", "data_V12");
+  }
 
   gApplication->Terminate(0);
 
