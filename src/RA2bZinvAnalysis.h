@@ -6,7 +6,10 @@
 #ifndef RA2BZINVANALYSIS_H
 #define RA2BZINVANALYSIS_H
 
+#define _CRT_SECURE_NO_WARNINGS
+
 /* #define ISMC */
+/* #define ISV12 */
 
 #include <TString.h>
 #include <TChain.h>
@@ -97,9 +100,15 @@ private:
   void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
 
 #ifdef ISMC
+#ifdef ISV12
 #include "LeafDeclaration_MC_V12.h"
+#endif
 #else
+#ifdef ISV12
 #include "LeafDeclaration_data_V12.h"
+#else
+#include "LeafDeclaration_data_V15.h"
+#endif
 #endif
 
   // Functions to fill histograms with non-double, non-int types

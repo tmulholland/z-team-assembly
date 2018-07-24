@@ -12,10 +12,9 @@
 #include <TFile.h>
 #include <TRegexp.h>
 #include <TCut.h>
+
 #include <TMath.h>
 using TMath::Sqrt; using TMath::Power;
-
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 using std::cout;
@@ -32,7 +31,8 @@ ClassImp(RA2bZinvAnalysis)
 
 RA2bZinvAnalysis::RA2bZinvAnalysis() :
   era_("2016"),
-  ntupleVersion_("V12"),
+  // ntupleVersion_("V12"),
+  ntupleVersion_("V15"),
   intLumi_(1),
   treeLoc_(""),
   treeName_("tree"),
@@ -43,20 +43,26 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
   applyMinDeltaRCut_(true),
   // applySF_(false),
   // njSplit_(false),
-  useTreeCCbin_(true)
+  useTreeCCbin_(false)  // not available in V15
 #ifdef ISMC
   , applyBTagSF_(false),
   applyPuWeight_(false),
   customPuWeight_(true)  // Substitute Kevin P recipe for the PuWeight in the tree
 #endif
 {
+  if (ntupleVersion_ == "V12") {
+    // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by wtford (Zjets only)
+    treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
+    // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // xrootd
+    // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
+    treeName_ = "tree";  // For skims
+  } else if (ntupleVersion_ == "V15") {
+    treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV15";  // ntuples, xrootd
+    // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // xrootd
+    // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // from cmslpc
+    treeName_ = "TreeMaker2/PreSelection";  // For ntuple
+  }
   if (era_ == TString("2016")) {
-    if (ntupleVersion_ == "V12") {
-      // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by wtford (Zjets only)
-      treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
-      // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // xrootd
-      // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
-    }
     intLumi_ = 35.9;
 
 #ifdef ISMC
@@ -106,7 +112,7 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
 
 }  // ======================================================================================
 
-#include "fillFileMap_V12.h"
+#include "fillFileMap.h"
 
 TChain*
 RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent, bool setBrAddr) {
@@ -214,6 +220,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     //     cuts*=extraWeight
 #endif
 
+  cuts = "1";  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   return cuts;
  
 }  // ======================================================================================
@@ -250,7 +257,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   int count = 0;
   for (Long64_t entry = 0; entry < Nentries; ++entry) {
     count++;
-    if (count % 100000 == 0) cout << "Entry number " << count << endl;
+    if (count % 1000 == 0) cout << "Entry number " << count << endl;
 
     chain->LoadTree(entry);
     if (chain->GetTreeNumber() != fCurrent) {
@@ -440,7 +447,7 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 #else
     if (useTreeCCbin_) {
 #endif
-      binCC = RA2bin;
+      // binCC = RA2bin;
       hCCbins->Fill(Double_t(binCC), eventWt);
     } else {
       std::vector<int> jbk;
@@ -596,13 +603,59 @@ RA2bZinvAnalysis::fillCutMaps() {
   MHTCutMap_["hdp"] = "MHT>=250";
   MHTCutMap_["ldp"] = "MHT>=250";
 
-  triggerMap_["zmm"] = {"22", "23", "29", "18", "20"};
-  triggerMap_["zee"] = {"6", "7", "11", "12", "3", "4"};
+  if (ntupleVersion_ == "V12") {
+  /*
+    V12, 2016:
+    18: HLT_IsoMu24_v  *
+    19: HLT_IsoTkMu22_v
+    20: HLT_IsoTkMu24_v  *
+    21: HLT_Mu15_IsoVVVL_PFHT350_PFMET50_v
+    22: HLT_Mu15_IsoVVVL_PFHT350_v  *
+    23: HLT_Mu15_IsoVVVL_PFHT400_v  *
+    24: HLT_Mu15_IsoVVVL_PFHT600_v
+    25: HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v
+    26: HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v
+    27: HLT_Mu45_eta2p1_v
+    28: HLT_Mu50_IsoVVVL_PFHT400_v
+    29: HLT_Mu50_v  *
+  */
+    triggerMap_["zmm"] = {"18", "20", "22", "23", "29"};
+  } else if (ntupleVersion_ == "V15") {
+  /*
+    V15, 2018
+    44: HLT_IsoMu16_eta2p1_MET30_v
+    45: HLT_IsoMu20_v
+    46: HLT_IsoMu22_v
+    47: HLT_IsoMu22_eta2p1_v
+    48: HLT_IsoMu24_v  ?
+    49: HLT_IsoMu24_eta2p1_v
+    50: HLT_IsoMu27_v
+    51: HLT_IsoTkMu22_v
+    52: HLT_IsoTkMu24_v  ?
+    53: HLT_Mu15_IsoVVVL_PFHT350_v  ?
+    54: HLT_Mu15_IsoVVVL_PFHT350_PFMET50_v
+    55: HLT_Mu15_IsoVVVL_PFHT400_v  ?
+    56: HLT_Mu15_IsoVVVL_PFHT450_v
+    57: HLT_Mu15_IsoVVVL_PFHT450_CaloBTagCSV_4p5_v
+    58: HLT_Mu15_IsoVVVL_PFHT450_PFMET50_v
+    59: HLT_Mu15_IsoVVVL_PFHT600_v
+    60: HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v
+    61: HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v
+    62: HLT_Mu45_eta2p1_v
+    63: HLT_Mu50_v  ?
+    64: HLT_Mu50_IsoVVVL_PFHT400_v
+    65: HLT_Mu50_IsoVVVL_PFHT450_v
+    66: HLT_Mu55_v
+   */
+  triggerMap_["zmm"] = {"24", "52", "53", "55", "63"};
+  }
+  triggerMap_["zee"] = {"3", "4", "6", "7", "11", "12"};
+  triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco
+  triggerMap_["sig"] = {"42", "43", "44", "46", "47", "48"};
+
   triggerMap_["zll"].reserve(triggerMap_["zmm"].size() + triggerMap_["zee"].size());
   triggerMap_["zll"] = triggerMap_["zmm"];
   triggerMap_["zll"].insert(triggerMap_["zll"].end(), triggerMap_["zee"].begin(), triggerMap_["zee"].end());
-  triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco
-  triggerMap_["sig"] = {"42", "43", "44", "46", "47", "48"};
   triggerMap_["sle"] = triggerMap_["sig"];
   triggerMap_["slm"] = triggerMap_["sig"];
 

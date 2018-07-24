@@ -9,7 +9,7 @@
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
   bool do1Dzmm = true;
-  bool do1Dzee = true;
+  bool do1Dzee = false;
   bool do1Ddymm = false;
   bool do1Ddyee = false;
   bool do1Dttzmm = false;
@@ -113,6 +113,7 @@
   if (doMakeClass) {
     // analyzer.runMakeClass("zinv", "MC_V12");
     // analyzer.runMakeClass("zmm", "data_V12");
+    analyzer.runMakeClass("zmm", "data_V15");
   }
 
   gApplication->Terminate(0);
