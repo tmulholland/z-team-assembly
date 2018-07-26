@@ -12,6 +12,7 @@
 #include <TFile.h>
 #include <TRegexp.h>
 #include <TCut.h>
+#include <TTreeCache.h>
 
 #include <TMath.h>
 using TMath::Sqrt; using TMath::Power;
@@ -31,8 +32,8 @@ ClassImp(RA2bZinvAnalysis)
 
 RA2bZinvAnalysis::RA2bZinvAnalysis() :
   era_("2016"),
-  // ntupleVersion_("V12"),
-  ntupleVersion_("V15"),
+  ntupleVersion_("V12"),
+  // ntupleVersion_("V15"),
   intLumi_(1),
   treeLoc_(""),
   treeName_("tree"),
@@ -61,6 +62,7 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // xrootd
     // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // from cmslpc
     treeName_ = "TreeMaker2/PreSelection";  // For ntuple
+    // tmt_ = new TreeMkr_data_V15;
   }
   if (era_ == TString("2016")) {
     intLumi_ = 35.9;
@@ -72,6 +74,45 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     }
 
     BTagSFfile_ = "../../Analysis/btag/CSVv2_Moriond17_B_H_mod.csv";
+#endif
+
+    // Needed branches
+    activeBranches_.push_back("NJets");
+    activeBranches_.push_back("BTags");
+    activeBranches_.push_back("HT");
+    activeBranches_.push_back("MHT");
+    // activeBranches_.push_back("RA2bin");
+    activeBranches_.push_back("Muons");
+    activeBranches_.push_back("Electrons");
+    activeBranches_.push_back("ZCandidates");
+    activeBranches_.push_back("Photons");
+    activeBranches_.push_back("Photons_nonPrompt");
+    activeBranches_.push_back("Photons_fullID");
+    activeBranches_.push_back("NVtx");
+    activeBranches_.push_back("JetID");
+    activeBranches_.push_back("Jets");
+    activeBranches_.push_back("Jets_hadronFlavor");
+    activeBranches_.push_back("Jets_HTMask");
+    activeBranches_.push_back("TriggerPass");
+    activeBranches_.push_back("TriggerPrescales");
+    activeBranches_.push_back("isoElectronTracks");
+    activeBranches_.push_back("isoMuonTracks");
+    activeBranches_.push_back("isoPionTracks");
+    activeBranches_.push_back("DeltaPhi1");
+    activeBranches_.push_back("DeltaPhi2");
+    activeBranches_.push_back("DeltaPhi3");
+    activeBranches_.push_back("DeltaPhi4");
+    activeBranches_.push_back("HBHENoiseFilter");
+    activeBranches_.push_back("HBHEIsoNoiseFilter");
+    activeBranches_.push_back("eeBadScFilter");
+    activeBranches_.push_back("EcalDeadCellTriggerPrimitiveFilter");
+    activeBranches_.push_back("globalTightHalo2016Filter");
+    activeBranches_.push_back("BadChargedCandidateFilter");
+    activeBranches_.push_back("BadPFMuonFilter");
+#ifdef ISMC
+    activeBranches_.push_back("puWeight");
+    activeBranches_.push_back("Weight");
+    activeBranches_.push_back("madMinPhotonDeltaR");
 #endif
 
     kinThresholds_.push_back({300, 300, 500, 1000});  // mht threshold, {ht thresholds}
@@ -142,9 +183,20 @@ RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent, bool setBrAddr) 
     cout << file << endl;
     chain->Add(file);
   }
+  cout << "Initial size of cache for chain = " << chain->GetCacheSize() << endl;
+  TTreeCache::SetLearnEntries(100);
+  chain->SetCacheSize(200*1024*1024);
+  chain->SetCacheEntryRange(0, chain->GetEntries());
+  chain->AddBranchToCache("*", true);
+  chain->StopCacheLearningPhase();
+  cout << "Reset size of cache for chain = " << chain->GetCacheSize() << endl;
 
   if (fCurrent != nullptr) *fCurrent = -1;
+  // if (setBrAddr) tmt_->Init(chain);
   if (setBrAddr) setBranchAddress(chain);
+
+  chain->SetBranchStatus("*", 0);  // disable all branches
+  for (auto theBranch : activeBranches_) chain->SetBranchStatus(theBranch, 1);
 
   return chain;
 }  // ======================================================================================
@@ -199,14 +251,14 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   MHTcut_ = MHTCutMap_.at(deltaPhi_);
   NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
 
-  cuts += objCutMap_.at(sampleKey);
-  cuts += HTcut_;
-  cuts += NJetscut_;
-  cuts += MHTcut_;
-  cuts += minDphiCutMap_.at(deltaPhi_);
-  cuts += massCut_;
-  cuts += ptCut_;
-  cuts += photonDeltaRcut;
+  // cuts += objCutMap_.at(sampleKey);
+  // cuts += HTcut_;
+  // cuts += NJetscut_;
+  // cuts += MHTcut_;
+  // cuts += minDphiCutMap_.at(deltaPhi_);
+  // cuts += massCut_;
+  // cuts += ptCut_;
+  // cuts += photonDeltaRcut;
   cuts += commonCuts;
   cuts += trigCuts;
     // 	  if(applySF):
@@ -220,7 +272,6 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     //     cuts*=extraWeight
 #endif
 
-  cuts = "1";  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   return cuts;
  
 }  // ======================================================================================
@@ -257,7 +308,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   int count = 0;
   for (Long64_t entry = 0; entry < Nentries; ++entry) {
     count++;
-    if (count % 1000 == 0) cout << "Entry number " << count << endl;
+    if (count % 100000 == 0) cout << "Entry number " << count << endl;
 
     chain->LoadTree(entry);
     if (chain->GetTreeNumber() != fCurrent) {
@@ -266,7 +317,14 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       if (thisFile) cout << "Current file in chain: " << thisFile->GetName() << endl;
     }
     chain->GetEntry(entry);
-
+    // if (count == 1) {
+    //   cout << "Trigger prescales" << endl;
+    //   int trigNo = 0;
+    //   for (auto & theTrigPrescale : *TriggerPrescales) {
+    // 	cout << trigNo << ":  " << theTrigPrescale << endl;
+    // 	++trigNo;
+    //   }
+    // }
     Double_t eventWt = 1;
     Double_t PUweight = 1;
 #ifdef ISMC
@@ -647,7 +705,7 @@ RA2bZinvAnalysis::fillCutMaps() {
     65: HLT_Mu50_IsoVVVL_PFHT450_v
     66: HLT_Mu55_v
    */
-  triggerMap_["zmm"] = {"24", "52", "53", "55", "63"};
+  triggerMap_["zmm"] = {"48", "52", "53", "55", "63"};
   }
   triggerMap_["zee"] = {"3", "4", "6", "7", "11", "12"};
   triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco

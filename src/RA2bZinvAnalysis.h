@@ -23,6 +23,8 @@
 #include "../../Analysis/btag/BTagCorrector.h"
 #endif
 
+/* #include "TreeMkr_data_V15.h" */
+
 class RA2bZinvAnalysis {
 
 public:
@@ -79,26 +81,6 @@ private:
   unsigned kinSize_;
   double intLumi_;
 
-  typedef std::map<TString, std::vector<TString> > vstring_map;
-  typedef std::map<TString, TString> string_map;
-  typedef std::map<std::vector<int>, Int_t> ivector_map;
-  vstring_map fileMap_;
-  vstring_map triggerMap_;
-  string_map objCutMap_;
-  string_map minDphiCutMap_;
-  string_map MHTCutMap_;
-  string_map sampleKeyMap_;
-  ivector_map toCCbin_;
-  TString HTcut_;
-  TString MHTcut_;
-  TString NJetscut_;
-  TString massCut_;
-  TString ptCut_;
-
-  void fillFileMap();
-  void fillCutMaps();
-  void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
-
 #ifdef ISMC
 #ifdef ISV12
 #include "LeafDeclaration_MC_V12.h"
@@ -110,6 +92,28 @@ private:
 #include "LeafDeclaration_data_V15.h"
 #endif
 #endif
+
+  typedef std::map<TString, std::vector<TString> > vstring_map;
+  typedef std::map<TString, TString> string_map;
+  typedef std::map<std::vector<int>, Int_t> ivector_map;
+  vstring_map fileMap_;
+  vstring_map triggerMap_;
+  string_map objCutMap_;
+  string_map minDphiCutMap_;
+  string_map MHTCutMap_;
+  string_map sampleKeyMap_;
+  ivector_map toCCbin_;
+  std::vector<const char*> activeBranches_;
+  TString HTcut_;
+  TString MHTcut_;
+  TString NJetscut_;
+  TString massCut_;
+  TString ptCut_;
+
+  void fillFileMap();
+  void fillCutMaps();
+  void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
+  /* TreeMkrBase* tmt_; */
 
   // Functions to fill histograms with non-double, non-int types
   void fillZmass(TH1F* h, double wt) {for (auto & theZ : *ZCandidates) h->Fill(theZ.M(), wt);}

@@ -30,9 +30,9 @@ RA2bZinvAnalysis::fillFileMap() {
     fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-100to200.root"));
     fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-200to400.root"));
     fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-400to600.root"));
-    /* fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-600to800.root")); */
+    fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-600to800.root"));
     fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-800to1200.root"));
-    /* fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-1200to2500.root")); */
+    fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-1200to2500.root"));
     fileMap_["dyee"].push_back(dir+TString("/tree_DYe_CleanVars/tree_DYJetsToLL_M-50_HT-2500toInf.root"));
 
     // ttz->mumu MC
@@ -81,9 +81,8 @@ RA2bZinvAnalysis::fillFileMap() {
 
   } else if (ntupleVersion_ == "V15") {
 
-    // DY->mumu data
+    // DY->mumu data (latest file moved to first)
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1000_RA2AnalysisTree.root"));
-    /*
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1001_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1002_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1003_RA2AnalysisTree.root"));
@@ -103,6 +102,7 @@ RA2bZinvAnalysis::fillFileMap() {
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1016_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1017_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1018_RA2AnalysisTree.root"));
+    /*
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1019_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_101_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_1020_RA2AnalysisTree.root"));
@@ -1072,6 +1072,7 @@ RA2bZinvAnalysis::fillFileMap() {
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_580_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_581_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_582_RA2AnalysisTree.root"));
+    //  =========================================================================================
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_583_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_584_RA2AnalysisTree.root"));
     fileMap_["zmm"].push_back(dir+TString("/Run2018A-PromptReco-v1.SingleMuon_585_RA2AnalysisTree.root"));
