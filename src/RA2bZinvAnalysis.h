@@ -8,8 +8,9 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#define ISSKIM
+#define ISV12
 /* #define ISMC */
-/* #define ISV12 */
 
 #include <TString.h>
 #include <TChain.h>
@@ -19,11 +20,20 @@
 #include <TLorentzVector.h>
 #include <TTreeFormula.h>
 #include <TChainElement.h>
-#ifdef ISMC
 #include "../../Analysis/btag/BTagCorrector.h"
-#endif
 
-/* #include "TreeMkr_data_V15.h" */
+/* #include "TreeMkr_unskimmed_data_V15.h" */
+
+// members needed by nested class cutHistos
+static TString HTcut_;
+static TString MHTcut_;
+static TString NJetscut_;
+static TString massCut_;
+static TString ptCut_;
+static TString objcut_;
+static TString minDphicut_;
+static TString commonCuts_;
+static TString trigCuts_;
 
 class RA2bZinvAnalysis {
 
@@ -37,6 +47,7 @@ public:
   TH1F* makeCChist(const char* sample);
   TCut getCuts(const TString sampleKey);
   int kinBin(double& ht, double& mht);
+  void checkTrigPrescales(const char* sample);
   void runMakeClass(const char* sample, const char* ext);
 
   struct hist1D {
@@ -56,11 +67,31 @@ public:
     hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr) {}
   };
 
+  class cutHistos {
+  public:
+    cutHistos(TChain* chain, TObjArray* forNotify);
+    ~cutHistos() {};
+    void fill(TH1F* hcf, Double_t wt);
+  private:
+    TObjArray* forNotify_;
+    TTreeFormula* HTcutf_;
+    TTreeFormula* MHTcutf_;
+    TTreeFormula* NJetscutf_;
+    TTreeFormula* minDphicutf_;
+    TTreeFormula* objcutf_;
+    TTreeFormula* ptcutf_;
+    TTreeFormula* masscutf_;
+    TTreeFormula* trigcutf_;
+    TTreeFormula* commoncutf_;
+  };
+
 private:
   const char* treeLoc_;
   const char* treeName_;
   TString era_;  // "2016", ...
-  TString ntupleVersion_; // "V12", ...
+  TString ntupleVersion_; // "V12", "V15", ...
+  bool isMC_;
+  bool isSkim_;
   TString deltaPhi_;  // "nominal", "hdp", "ldp"
   bool applyMassCut_;
   bool applyPtCut_;
@@ -68,13 +99,11 @@ private:
   // bool applySF_;
   // bool njSplit_;
   bool useTreeCCbin_;
-#ifdef ISMC
   bool applyBTagSF_;
   bool applyPuWeight_;
   bool customPuWeight_;
   TH1* puHist_;
   const char* BTagSFfile_;
-#endif
   std::vector< std::vector<double> > kinThresholds_;
   std::vector<int> nJetThresholds_;
   std::vector<int> nbThresholds_;
@@ -82,15 +111,35 @@ private:
   double intLumi_;
 
 #ifdef ISMC
+
 #ifdef ISV12
 #include "LeafDeclaration_MC_V12.h"
 #endif
-#else
+
+#else  // ISMC
+
 #ifdef ISV12
 #include "LeafDeclaration_data_V12.h"
 #else
-#include "LeafDeclaration_data_V15.h"
+  // V15
+#ifndef ISSKIM
+#include "LeafDeclaration_unskimmed_data_V15.h"
 #endif
+
+  // Declare dummy tree variables missing in some versions
+#endif  // !ISMC
+  Double_t        puWeight;
+  Double_t        Weight;
+  Double_t        TrueNumInteractions;
+#endif
+
+#ifndef ISSKIM
+  UInt_t          RA2bin;
+#endif
+
+#ifdef ISV12
+  Int_t           NElectrons;
+  Int_t           NMuons;
 #endif
 
   typedef std::map<TString, std::vector<TString> > vstring_map;
@@ -104,15 +153,36 @@ private:
   string_map sampleKeyMap_;
   ivector_map toCCbin_;
   std::vector<const char*> activeBranches_;
-  TString HTcut_;
-  TString MHTcut_;
-  TString NJetscut_;
-  TString massCut_;
-  TString ptCut_;
 
   void fillFileMap();
   void fillCutMaps();
   void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
+  void fillCutFlow(TH1F* hcf, Double_t wt);
+
+  void cleanVars() {
+#ifndef ISSKIM
+    /* cout << "NJets, Jets.size ( , clean) = (" << NJets << ", " << NJetsclean << "), (" */
+    /* 	 << Jets->size() << ", " << Jetsclean->size() << ")" << endl; */
+    /* cout << "HT      = " << HT << ", MHT      = " << MHT << ", NJets      = " << NJets << endl; */
+    /* cout << "HTclean = " << HTclean << ", MHTclean = " << MHTclean << ", NJetsclean = " << NJetsclean << endl; */
+    NJets = NJetsclean;
+    BTags = BTagsclean;
+    HT = HTclean;
+    MHT = MHTclean;
+    JetID = JetIDclean;
+    Jets = Jetsclean;
+    Jets_hadronFlavor = Jetsclean_hadronFlavor;
+    Jets_HTMask = Jetsclean_HTMask;
+    isoElectronTracks = isoElectronTracksclean;
+    isoMuonTracks = isoMuonTracksclean;
+    isoPionTracks = isoPionTracksclean;
+    DeltaPhi1 = DeltaPhi1clean;
+    DeltaPhi2 = DeltaPhi2clean;
+    DeltaPhi3 = DeltaPhi3clean;
+    DeltaPhi4 = DeltaPhi4clean;
+#endif
+  };
+
   /* TreeMkrBase* tmt_; */
 
   // Functions to fill histograms with non-double, non-int types

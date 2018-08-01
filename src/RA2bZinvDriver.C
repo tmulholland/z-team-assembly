@@ -4,6 +4,11 @@
   root -l -b RA2bZinvLoadClasses.C RA2bZinvDriver.C
   */
 
+#include "TROOT.h"
+#include "TEnv.h"
+
+  gEnv->SetValue("TFile.AsyncPrefetching", 1);
+
   bool doCCzvv = false;
   bool doCCttzvv = false;
   bool do1Dzvv = false;
@@ -19,6 +24,7 @@
   bool do1Dttmm = false;
   bool do1Dttee = false;
   bool doMakeClass = false;
+  bool doCheckTrigPrescales = false;
 
   RA2bZinvAnalysis analyzer;
 
@@ -108,6 +114,10 @@
     }
 
     histos1D->Write();
+  }
+
+  if (doCheckTrigPrescales) {
+    analyzer.checkTrigPrescales("zmm");
   }
 
   if (doMakeClass) {

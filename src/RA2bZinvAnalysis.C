@@ -4,6 +4,7 @@
 //
 
 #include "RA2bZinvAnalysis.h"
+#include "fillFileMap.h"
 #include <TStyle.h>
 #include <TROOT.h>
 #include <TCanvas.h>
@@ -33,7 +34,8 @@ ClassImp(RA2bZinvAnalysis)
 RA2bZinvAnalysis::RA2bZinvAnalysis() :
   era_("2016"),
   ntupleVersion_("V12"),
-  // ntupleVersion_("V15"),
+  isSkim_(true),
+  isMC_(false),
   intLumi_(1),
   treeLoc_(""),
   treeName_("tree"),
@@ -44,57 +46,57 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
   applyMinDeltaRCut_(true),
   // applySF_(false),
   // njSplit_(false),
-  useTreeCCbin_(false)  // not available in V15
-#ifdef ISMC
-  , applyBTagSF_(false),
-  applyPuWeight_(false),
-  customPuWeight_(true)  // Substitute Kevin P recipe for the PuWeight in the tree
-#endif
+  useTreeCCbin_(true),  // only in skims
+  applyBTagSF_(false),  // overridden false if !isMC_
+  applyPuWeight_(true),  // overridden false if !isMC_
+  customPuWeight_(true),  // Substitute Kevin P recipe for the PuWeight in the tree
+  puWeight(1),  // overridden from tree if isMC_
+  Weight(1),  // overridden from tree if isMC_
+  TrueNumInteractions(20),  // overridden from tree if isMC_
+  RA2bin(0),  // overridden from tree if isSkim
+  NElectrons(0),  // overriden from tree if >=V15
+  NMuons(0)  // overriden from tree if >=V15
 {
+  if (!isMC_) {
+    applyBTagSF_ = false;
+    applyPuWeight_ = false;
+  }
+  if (!isSkim_) {
+    useTreeCCbin_ = false;
+    treeName_ = "TreeMaker2/PreSelection";  // For ntuple
+  } else {
+    treeName_ = "tree";  // For skims
+  }
   if (ntupleVersion_ == "V12") {
     // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by wtford (Zjets only)
     treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // xrootd
     // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
-    treeName_ = "tree";  // For skims
   } else if (ntupleVersion_ == "V15") {
     treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV15";  // ntuples, xrootd
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // xrootd
     // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // from cmslpc
-    treeName_ = "TreeMaker2/PreSelection";  // For ntuple
-    // tmt_ = new TreeMkr_data_V15;
+    // tmt_ = new TreeMkr_unskimmed_data_V15;
   }
   if (era_ == TString("2016")) {
     intLumi_ = 35.9;
 
-#ifdef ISMC
     if (applyPuWeight_ && customPuWeight_) {
       TFile* pufile = TFile::Open("../../Analysis/corrections/PileupHistograms_0121_69p2mb_pm4p6.root","READ");
       puHist_ = (TH1*) pufile->Get("pu_weights_down");
     }
 
-    BTagSFfile_ = "../../Analysis/btag/CSVv2_Moriond17_B_H_mod.csv";
-#endif
+    if (isMC_) BTagSFfile_ = "../../Analysis/btag/CSVv2_Moriond17_B_H_mod.csv";
 
     // Needed branches
     activeBranches_.push_back("NJets");
     activeBranches_.push_back("BTags");
     activeBranches_.push_back("HT");
     activeBranches_.push_back("MHT");
-    // activeBranches_.push_back("RA2bin");
-    activeBranches_.push_back("Muons");
-    activeBranches_.push_back("Electrons");
-    activeBranches_.push_back("ZCandidates");
-    activeBranches_.push_back("Photons");
-    activeBranches_.push_back("Photons_nonPrompt");
-    activeBranches_.push_back("Photons_fullID");
-    activeBranches_.push_back("NVtx");
     activeBranches_.push_back("JetID");
     activeBranches_.push_back("Jets");
     activeBranches_.push_back("Jets_hadronFlavor");
     activeBranches_.push_back("Jets_HTMask");
-    activeBranches_.push_back("TriggerPass");
-    activeBranches_.push_back("TriggerPrescales");
     activeBranches_.push_back("isoElectronTracks");
     activeBranches_.push_back("isoMuonTracks");
     activeBranches_.push_back("isoPionTracks");
@@ -102,6 +104,38 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     activeBranches_.push_back("DeltaPhi2");
     activeBranches_.push_back("DeltaPhi3");
     activeBranches_.push_back("DeltaPhi4");
+    if (isSkim_) {
+      activeBranches_.push_back("RA2bin");
+    } else {
+      activeBranches_.push_back("NJetsclean");
+      activeBranches_.push_back("BTagsclean");
+      activeBranches_.push_back("HTclean");
+      activeBranches_.push_back("MHTclean");
+      activeBranches_.push_back("JetIDclean");
+      activeBranches_.push_back("Jetsclean");
+      activeBranches_.push_back("Jetsclean_hadronFlavor");
+      activeBranches_.push_back("Jetsclean_HTMask");
+      activeBranches_.push_back("isoElectronTracksclean");
+      activeBranches_.push_back("isoMuonTracksclean");
+      activeBranches_.push_back("isoPionTracksclean");
+      activeBranches_.push_back("DeltaPhi1clean");
+      activeBranches_.push_back("DeltaPhi2clean");
+      activeBranches_.push_back("DeltaPhi3clean");
+      activeBranches_.push_back("DeltaPhi4clean");
+    }
+    if (ntupleVersion_ != "V12") {
+      activeBranches_.push_back("NMuons");
+      activeBranches_.push_back("NElectrons");
+    }
+    activeBranches_.push_back("Muons");
+    activeBranches_.push_back("Electrons");
+    activeBranches_.push_back("ZCandidates");
+    activeBranches_.push_back("Photons");
+    activeBranches_.push_back("Photons_nonPrompt");
+    activeBranches_.push_back("Photons_fullID");
+    activeBranches_.push_back("NVtx");
+    activeBranches_.push_back("TriggerPass");
+    activeBranches_.push_back("TriggerPrescales");
     activeBranches_.push_back("HBHENoiseFilter");
     activeBranches_.push_back("HBHEIsoNoiseFilter");
     activeBranches_.push_back("eeBadScFilter");
@@ -109,11 +143,11 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     activeBranches_.push_back("globalTightHalo2016Filter");
     activeBranches_.push_back("BadChargedCandidateFilter");
     activeBranches_.push_back("BadPFMuonFilter");
-#ifdef ISMC
-    activeBranches_.push_back("puWeight");
-    activeBranches_.push_back("Weight");
-    activeBranches_.push_back("madMinPhotonDeltaR");
-#endif
+    if (isMC_) {
+      activeBranches_.push_back("puWeight");
+      activeBranches_.push_back("Weight");
+      activeBranches_.push_back("madMinPhotonDeltaR");
+    }
 
     kinThresholds_.push_back({300, 300, 500, 1000});  // mht threshold, {ht thresholds}
     kinThresholds_.push_back({350, 350, 500, 1000});
@@ -153,8 +187,6 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
 
 }  // ======================================================================================
 
-#include "fillFileMap.h"
-
 TChain*
 RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent, bool setBrAddr) {
   TString theSample(sample);
@@ -184,10 +216,11 @@ RA2bZinvAnalysis::getChain(const char* sample, Int_t* fCurrent, bool setBrAddr) 
     chain->Add(file);
   }
   cout << "Initial size of cache for chain = " << chain->GetCacheSize() << endl;
-  TTreeCache::SetLearnEntries(100);
+  TTreeCache::SetLearnEntries(1);
   chain->SetCacheSize(200*1024*1024);
   chain->SetCacheEntryRange(0, chain->GetEntries());
-  chain->AddBranchToCache("*", true);
+  for (auto theBranch : activeBranches_) chain->AddBranchToCache(theBranch, true);
+  // chain->AddBranchToCache("*", true);
   chain->StopCacheLearningPhase();
   cout << "Reset size of cache for chain = " << chain->GetCacheSize() << endl;
 
@@ -220,24 +253,22 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     // ptCut_ = "ZCandidates.Pt()>=100.";  // Troy revision
 
   TString photonDeltaRcut;
-  TString commonCuts;
-  TString trigCuts;
   std::vector<TString> trigger;
   try {trigger = triggerMap_.at(sample);}
   catch (const std::out_of_range& oor) {trigger.clear();}
 
-  // commonCuts = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision+
+  // commonCuts_ = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision+
   if (trigger.empty()) {
-    commonCuts = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision-
+    commonCuts_ = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision-
   } else {
-    commonCuts = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision-
+    commonCuts_ = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision-
     int Ntrig = trigger.size();
-    if (Ntrig > 1) trigCuts += TString("(");
+    if (Ntrig > 1) trigCuts_ += TString("(");
     for (auto theTrigger : trigger)
-      trigCuts += TString("(TriggerPass[")+theTrigger+TString("]==1) + ");
-    if (Ntrig > 1) trigCuts.Replace(trigCuts.Length()-3, 3, ")");
+      trigCuts_ += TString("(TriggerPass[")+theTrigger+TString("]==1) + ");
+    if (Ntrig > 1) trigCuts_.Replace(trigCuts_.Length()-3, 3, ")");
   }
-  cout << "trigCuts = " << trigCuts << endl;
+  // cout << "trigCuts_ = " << trigCuts_ << endl;
 
   if (sampleKey == "photon") {
     if (applyPtCut_) ptCut_ = "Photons[0].Pt()>=200.";
@@ -250,27 +281,27 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   HTcut_ = std::string("HT>=") + std::to_string(kinThresholds_[0][1]);
   MHTcut_ = MHTCutMap_.at(deltaPhi_);
   NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
+  objcut_ = objCutMap_.at(sampleKey);
+  minDphicut_ = minDphiCutMap_.at(deltaPhi_);
 
-  // cuts += objCutMap_.at(sampleKey);
-  // cuts += HTcut_;
-  // cuts += NJetscut_;
-  // cuts += MHTcut_;
-  // cuts += minDphiCutMap_.at(deltaPhi_);
-  // cuts += massCut_;
-  // cuts += ptCut_;
-  // cuts += photonDeltaRcut;
-  cuts += commonCuts;
-  cuts += trigCuts;
+  cuts += objcut_;
+  cuts += HTcut_;
+  cuts += NJetscut_;
+  cuts += MHTcut_;
+  cuts += minDphicut_;
+  cuts += massCut_;
+  cuts += ptCut_;
+  cuts += photonDeltaRcut;
+  cuts += commonCuts_;
+  cuts += trigCuts_;
     // 	  if(applySF):
     //     cuts*=bJetCutsSF[bJetBin]
     // 	else:
     //     cuts+=bJetCuts[bJetBin]
-#ifdef ISMC
   if(applyPuWeight_ && !customPuWeight_) cuts *= "puWeight*(1)";
     // 	  if(type(extraWeight) is str):
     //     extraWeight+="*(1)"
     //     cuts*=extraWeight
-#endif
 
   return cuts;
  
@@ -287,6 +318,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   TChain* chain = getChain(sample, &fCurrent);
   TObjArray* forNotify = new TObjArray;
 
+  cutHistos cutHistFiller(chain, forNotify);
   for (auto & hg : histograms) {
     hg->hist = new TH1F(hg->name, hg->title, hg->Nbins, hg->lowEdge, hg->highEdge);
     hg->hist->GetXaxis()->SetTitle(hg->axisTitles.first);
@@ -317,35 +349,44 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       if (thisFile) cout << "Current file in chain: " << thisFile->GetName() << endl;
     }
     chain->GetEntry(entry);
-    // if (count == 1) {
-    //   cout << "Trigger prescales" << endl;
-    //   int trigNo = 0;
-    //   for (auto & theTrigPrescale : *TriggerPrescales) {
-    // 	cout << trigNo << ":  " << theTrigPrescale << endl;
-    // 	++trigNo;
-    //   }
-    // }
+    cleanVars();  // If unskimmed input, copy <var>clean to <var>
+    // cout << "NJets, Jets.size = " << NJets << ", " << Jets->size() << endl;
+    // cout << "          " << HT << ",            " << MHT << endl;
+    // cout << "ev" << HT << "  " << MHT << "  " << NJets << "  " << BTags << endl;
+
     Double_t eventWt = 1;
     Double_t PUweight = 1;
-#ifdef ISMC
     if (applyPuWeight_ && customPuWeight_) {
       // This PU weight recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
       PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
-    eventWt = 1000*intLumi_*Weight*PUweight;
-    if (eventWt < 0) eventWt *= -1;
-#endif
+    if (isMC_) {
+      eventWt = 1000*intLumi_*Weight*PUweight;
+      if (eventWt < 0) eventWt *= -1;
+    }
+
 
     for (auto & hg : histograms) {
+      if (hg->name.Contains(TString("hCut"))) {
+	cutHistFiller.fill(hg->hist, eventWt);
+	continue;
+      }
       hg->NminusOneFormula->GetNdata();
       double selWt = hg->NminusOneFormula->EvalInstance(0);
       if (selWt != 0) {
-	if (hg->dvalue != nullptr) hg->hist->Fill(*(hg->dvalue), selWt*eventWt);
-	else if (hg->ivalue != nullptr) hg->hist->Fill(Double_t(*(hg->ivalue)), selWt*eventWt);
+	if (hg->dvalue != nullptr) {
+	  // cout << "  " << *(hg->dvalue);
+	  hg->hist->Fill(*(hg->dvalue), selWt*eventWt);
+	}
+	else if (hg->ivalue != nullptr) {
+	  // cout << "  " << *(hg->ivalue);
+	  hg->hist->Fill(Double_t(*(hg->ivalue)), selWt*eventWt);
+	}
 	else if (hg->filler != nullptr) (this->*(hg->filler))(hg->hist, selWt*eventWt);
 	else cerr << "No method to fill histogram provided for " << hg->name << endl;
       }
     }  // loop over histograms
+    // cout << endl;
   }  // loop over entries
 
   delete forNotify;
@@ -410,6 +451,18 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   hZpt.filler = &RA2bZinvAnalysis::fillZpt;  hZpt.omitCut.push_back(&ptCut_);  hZpt.omitCut.push_back(&MHTcut_);
   histograms.push_back(&hZpt);
 
+  hist1D hCutFlow;
+  hCutFlow.name = TString("hCutFlow_") + TString(sample);  hCutFlow.title = "Cut flow";
+  hCutFlow.Nbins = 10;  hCutFlow.lowEdge = 0;  hCutFlow.highEdge = 10;
+  hCutFlow.axisTitles.first = "";  hCutFlow.axisTitles.second = "Events surviving";
+  histograms.push_back(&hCutFlow);
+
+  hist1D hCuts;
+  hCuts.name = TString("hCuts_") + TString(sample);  hCuts.title = "Cuts passed";
+  hCuts.Nbins = 10;  hCuts.lowEdge = 0;  hCuts.highEdge = 10;
+  hCuts.axisTitles.first = "";  hCuts.axisTitles.second = "Events passing";
+  histograms.push_back(&hCuts);
+
   bookAndFillHistograms(sample, histograms);
 
   std::vector<TH1F*> theHists;
@@ -443,13 +496,11 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 
   // chain->Print();
 
-#ifdef ISMC
   BTagCorrector* btagcorr = nullptr;
   if (applyBTagSF_) {
     btagcorr = new BTagCorrector;
     btagcorr->SetCalib(BTagSFfile_);
   }
-#endif
 
   // Get the baseline cuts, make a TreeFormula, and add it to the list
   // of objects to be notified as new files in the chain are encountered
@@ -473,12 +524,11 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       TFile* thisFile = chain->GetCurrentFile();
       if (thisFile) {
     	cout << "Current file in chain: " << thisFile->GetName() << endl;
-#ifdef ISMC
     	if (btagcorr) btagcorr->SetEffs(thisFile);
-#endif
       }
     }
     chain->GetEntry(entry);
+    cleanVars();  // If unskimmed input, copy <var>clean to <var>
 
     UInt_t binCC = 0;
 
@@ -491,31 +541,28 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
     // Compute event weight factors
     Double_t eventWt = 1;
     Double_t PUweight = 1;
-#ifdef ISMC
     if (applyPuWeight_ && customPuWeight_) {
       // This recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
       PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
     if (count < 20 || count % 10000 == 0) cout << "PUweight = " << PUweight << endl;
-    eventWt = 1000*intLumi_*Weight*selWt*PUweight;
-    if (eventWt < 0) eventWt *= -1;
+    if (isMC_) {
+      eventWt = 1000*intLumi_*Weight*selWt*PUweight;
+      if (eventWt < 0) eventWt *= -1;
+    }
     if (count < 20 || count % 10000 == 0) cout << "eventWt = " << eventWt << endl;
 
     if (useTreeCCbin_ && !applyBTagSF_) {
-#else
-    if (useTreeCCbin_) {
-#endif
-      // binCC = RA2bin;
+      binCC = RA2bin;
       hCCbins->Fill(Double_t(binCC), eventWt);
     } else {
+      // Calculate binCC
       std::vector<int> jbk;
       int binKin = kinBin(HT, MHT);
       if (binKin < 0) continue;
       int binNjets = nJetThresholds_.size()-1;
       while (NJets < nJetThresholds_[binNjets]) binNjets--;
-#ifdef ISMC
       if (!applyBTagSF_) {
-#endif
 	int binNb = nbThresholds_.size()-1;
 	while (BTags < nbThresholds_[binNb]) binNb--;
 	jbk = {binNjets, binNb, binKin};
@@ -530,8 +577,8 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 	}
 	// if (outCount < 100) cout << "j = " << binNjets << ", b = " << binNb << ", k = " << binKin << ", binCC = " << binCC << ", RA2bin = " << RA2bin << endl;
 	hCCbins->Fill(Double_t(binCC), eventWt);
-#ifdef ISMC
-      } else {  // apply BTagSF to all Nb bins
+      } else {
+        // apply BTagSF to all Nb bins
 	// if (count < 20 || count % 10000 == 0) cout << "Size of input Jets = " << Jets->size() << ", Jets_hadronFlavor = " << Jets_hadronFlavor->size() << " Jets_HTMask = " << Jets_HTMask->size() << endl;
 	vector<double> probNb = btagcorr->GetCorrections(Jets, Jets_hadronFlavor, Jets_HTMask);
 	for (int binNb = 0; binNb < (int) nbThresholds_.size(); ++binNb) {
@@ -542,20 +589,17 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
 	  hCCbins->Fill(Double_t(binCC), eventWt*probNb[binNb]);
 	}
       }  // if apply BTagSF
-#endif
     }  // if useTreeCCbin
   }  // End loop over entries
 
   delete forNotify;
   delete baselineTF;
   delete chain->GetCurrentFile();
-#ifdef ISMC
   if (btagcorr) delete btagcorr;
-#endif
 
   return hCCbins;
 
-}  // ======================================================================================
+  }  // ======================================================================================
 
 int
 RA2bZinvAnalysis::kinBin(double& ht, double& mht) {
@@ -634,24 +678,27 @@ RA2bZinvAnalysis::fillCutMaps() {
   sampleKeyMap_["ttgjets"] = "photon";
   sampleKeyMap_["gjetsqcd"] = "photonqcd";
 
-  objCutMap_["sig"] = 
-    "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-  objCutMap_["zmm"] = 
-    "@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
-  objCutMap_["zee"] = 
-    "@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
-  objCutMap_["zll"] = 
-    "((@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0) || (@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0))";
-  objCutMap_["photon"] = 
-    "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-  objCutMap_["photonqcd"] = 
-    "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-  objCutMap_["ttz"] = 
-    "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
-  objCutMap_["slm"] = 
-    "@Muons.size()==1 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0";
-  objCutMap_["sle"] = 
-    "@Muons.size()==0 && @Electrons.size()==1 && isoMuonTracks==0 && isoPionTracks==0";
+  if (ntupleVersion_ == "V12") {
+    objCutMap_["sig"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+    objCutMap_["zmm"] = "@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
+    objCutMap_["zee"] = "@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
+    objCutMap_["zll"] = "((@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0) || (@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0))";
+    objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+    objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+    objCutMap_["ttz"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
+    objCutMap_["slm"] = "@Muons.size()==1 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0";
+    objCutMap_["sle"] = "@Muons.size()==0 && @Electrons.size()==1 && isoMuonTracks==0 && isoPionTracks==0";
+  } else if (ntupleVersion_ == "V15") {
+    objCutMap_["sig"] = "NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+    objCutMap_["zmm"] = "NMuons==2 && NElectrons==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
+    objCutMap_["zee"] = "NMuons==0 && NElectrons==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
+    objCutMap_["zll"] = "((NMuons==2 && NElectrons==0 && isoElectronTracks==0 && isoPionTracks==0) || (NMuons==0 && NElectrons==2 && isoMuonTracks==0 && isoPionTracks==0))";
+    objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+    objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+    objCutMap_["ttz"] = "NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
+    objCutMap_["slm"] = "NMuons==1 && NElectrons==0 && isoElectronTracks==0 && isoPionTracks==0";
+    objCutMap_["sle"] = "NMuons==0 && NElectrons==1 && isoMuonTracks==0 && isoPionTracks==0";
+  }
 
   minDphiCutMap_["nominal"] = "DeltaPhi1>0.5 && DeltaPhi2>0.5 && DeltaPhi3>0.3 && DeltaPhi4>0.3";
   minDphiCutMap_["hdp"] = "DeltaPhi1>0.5 && DeltaPhi2>0.5 && DeltaPhi3>0.3 && DeltaPhi4>0.3";
@@ -664,6 +711,19 @@ RA2bZinvAnalysis::fillCutMaps() {
   if (ntupleVersion_ == "V12") {
   /*
     V12, 2016:
+    3: HLT_Ele105_CaloIdVT_GsfTrkIdT_v  *
+    4: HLT_Ele115_CaloIdVT_GsfTrkIdT_v  *
+    5: HLT_Ele15_IsoVVVL_PFHT350_PFMET50_v
+    6: HLT_Ele15_IsoVVVL_PFHT350_v  *
+    7: HLT_Ele15_IsoVVVL_PFHT400_v  *
+    8: HLT_Ele15_IsoVVVL_PFHT600_v
+    9: HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v
+    10: HLT_Ele25_eta2p1_WPTight_Gsf_v 
+    11: HLT_Ele27_WPTight_Gsf_v  *
+    12: HLT_Ele27_eta2p1_WPLoose_Gsf_v  *
+    13: HLT_Ele45_WPLoose_Gsf_v
+    14: HLT_Ele50_IsoVVVL_PFHT400_v
+
     18: HLT_IsoMu24_v  *
     19: HLT_IsoTkMu22_v
     20: HLT_IsoTkMu24_v  *
@@ -676,23 +736,84 @@ RA2bZinvAnalysis::fillCutMaps() {
     27: HLT_Mu45_eta2p1_v
     28: HLT_Mu50_IsoVVVL_PFHT400_v
     29: HLT_Mu50_v  *
+
+    50: HLT_Photon135_PFMET100_v
+    51: HLT_Photon165_HE10_v
+    52: HLT_Photon175_v  *
+    53: HLT_Photon90_CaloIdL_PFHT500_v
+    54: HLT_Photon90_CaloIdL_PFHT600_v
+    55: HLT_TkMu50_v
+
+    30: HLT_PFHT200_v
+    31: HLT_PFHT250_v
+    32: HLT_PFHT300_PFMET100_v
+    33: HLT_PFHT300_PFMET110_v
+    34: HLT_PFHT300_v
+    35: HLT_PFHT350_v
+    36: HLT_PFHT400_v
+    37: HLT_PFHT475_v
+    38: HLT_PFHT600_v
+    39: HLT_PFHT650_v
+    40: HLT_PFHT800_v
+    41: HLT_PFHT900_v
+    42: HLT_PFMET100_PFMHT100_IDTight_v  *
+    43: HLT_PFMET110_PFMHT110_IDTight_v  *
+    44: HLT_PFMET120_PFMHT120_IDTight_v  *
+    45: HLT_PFMET90_PFMHT90_IDTight_v
+    46: HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_v  *
+    47: HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v  *
+    48: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v  *
+    49: HLT_PFMETNoMu90_PFMHTNoMu90_IDTight_v
   */
     triggerMap_["zmm"] = {"18", "20", "22", "23", "29"};
+    triggerMap_["zee"] = {"3", "4", "6", "7", "11", "12"};
+    triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco
+    triggerMap_["sig"] = {"42", "43", "44", "46", "47", "48"};
   } else if (ntupleVersion_ == "V15") {
   /*
     V15, 2018
+    17: HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v
+    18: HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_DZ_PFHT350_v
+    ...
+    21: HLT_Ele15_IsoVVVL_PFHT350_v  *
+    22: HLT_Ele15_IsoVVVL_PFHT350_PFMET50_v
+    23: HLT_Ele15_IsoVVVL_PFHT400_v  *
+    24: HLT_Ele15_IsoVVVL_PFHT450_v
+    25: HLT_Ele15_IsoVVVL_PFHT450_CaloBTagCSV_4p5_v
+    26: HLT_Ele15_IsoVVVL_PFHT450_PFMET50_v
+    27: HLT_Ele15_IsoVVVL_PFHT600_v
+    28: HLT_Ele20_eta2p1_WPLoose_Gsf_v  *
+    29: HLT_Ele20_WPLoose_Gsf_v
+    30: HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v
+    31: HLT_Ele25_eta2p1_WPTight_Gsf_v
+    32: HLT_Ele27_WPTight_Gsf_v  x
+    33: HLT_Ele27_eta2p1_WPLoose_Gsf_v  x
+    34: HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v
+    35: HLT_Ele32_WPTight_Gsf_v  *
+    36: HLT_Ele35_WPTight_Gsf_v
+    37: HLT_Ele45_WPLoose_Gsf_v
+    38: HLT_Ele50_IsoVVVL_PFHT400_v
+    39: HLT_Ele50_IsoVVVL_PFHT450_v
+    40: HLT_Ele105_CaloIdVT_GsfTrkIdT_v  *
+    41: HLT_Ele115_CaloIdVT_GsfTrkIdT_v  *
+    42: HLT_Ele135_CaloIdVT_GsfTrkIdT_v
+    43: HLT_Ele145_CaloIdVT_GsfTrkIdT_v
+
+    19: HLT_DoubleMu8_Mass8_PFHT300_v
+    20: HLT_DoubleMu8_Mass8_PFHT350_v
+    ...
     44: HLT_IsoMu16_eta2p1_MET30_v
     45: HLT_IsoMu20_v
     46: HLT_IsoMu22_v
     47: HLT_IsoMu22_eta2p1_v
-    48: HLT_IsoMu24_v  ?
+    48: HLT_IsoMu24_v  *  prescaled in late 2017 --Owen
     49: HLT_IsoMu24_eta2p1_v
     50: HLT_IsoMu27_v
     51: HLT_IsoTkMu22_v
-    52: HLT_IsoTkMu24_v  ?
-    53: HLT_Mu15_IsoVVVL_PFHT350_v  ?
+    52: HLT_IsoTkMu24_v  *
+    53: HLT_Mu15_IsoVVVL_PFHT350_v  *
     54: HLT_Mu15_IsoVVVL_PFHT350_PFMET50_v
-    55: HLT_Mu15_IsoVVVL_PFHT400_v  ?
+    55: HLT_Mu15_IsoVVVL_PFHT400_v  *
     56: HLT_Mu15_IsoVVVL_PFHT450_v
     57: HLT_Mu15_IsoVVVL_PFHT450_CaloBTagCSV_4p5_v
     58: HLT_Mu15_IsoVVVL_PFHT450_PFMET50_v
@@ -700,16 +821,95 @@ RA2bZinvAnalysis::fillCutMaps() {
     60: HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v
     61: HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v
     62: HLT_Mu45_eta2p1_v
-    63: HLT_Mu50_v  ?
+    63: HLT_Mu50_v  *
     64: HLT_Mu50_IsoVVVL_PFHT400_v
     65: HLT_Mu50_IsoVVVL_PFHT450_v
     66: HLT_Mu55_v
+
+    135: HLT_Photon90_CaloIdL_PFHT500_v
+    136: HLT_Photon90_CaloIdL_PFHT600_v
+    137: HLT_Photon90_CaloIdL_PFHT700_v
+    138: HLT_Photon135_PFMET100_v
+    139: HLT_Photon165_HE10_v
+    140: HLT_Photon165_R9Id90_HE10_IsoM_v
+    141: HLT_Photon175_v  *
+    142: HLT_Photon200_v
+    143: HLT_Photon300_NoHE_v
+
+    67: HLT_PFHT200_v
+    68: HLT_PFHT250_v
+    69: HLT_PFHT300_v
+    70: HLT_PFHT300_PFMET100_v
+    71: HLT_PFHT300_PFMET110_v
+    72: HLT_PFHT350_v
+    73: HLT_PFHT370_v
+    74: HLT_PFHT380_SixPFJet32_v
+    75: HLT_PFHT380_SixPFJet32_DoublePFBTagCSV_2p2_v
+    76: HLT_PFHT380_SixPFJet32_DoublePFBTagDeepCSV_2p2_v
+    77: HLT_PFHT400_v
+    78: HLT_PFHT400_SixJet30_v
+    79: HLT_PFHT400_SixJet30_DoubleBTagCSV_p056_v
+    80: HLT_PFHT430_v
+    81: HLT_PFHT430_SixJet40_BTagCSV_p056_v
+    82: HLT_PFHT430_SixPFJet40_PFBTagCSV_1p5_v
+    83: HLT_PFHT430_SixPFJet40_v
+    84: HLT_PFHT450_SixJet40_v
+    85: HLT_PFHT450_SixJet40_BTagCSV_p056_v
+    86: HLT_PFHT450_SixPFJet40_PFBTagCSV_1p5_v
+    87: HLT_PFHT475_v
+    88: HLT_PFHT500_PFMET100_PFMHT100_IDTight_v
+    89: HLT_PFHT500_PFMET110_PFMHT110_IDTight_v
+    90: HLT_PFHT510_v
+    91: HLT_PFHT590_v
+    92: HLT_PFHT600_v
+    93: HLT_PFHT650_v
+    94: HLT_PFHT650_WideJetMJJ900DEtaJJ1p5_v
+    95: HLT_PFHT680_v
+    96: HLT_PFHT700_PFMET85_PFMHT85_IDTight_v
+    97: HLT_PFHT700_PFMET95_PFMHT95_IDTight_v
+    98: HLT_PFHT780_v
+    99: HLT_PFHT800_v
+    100: HLT_PFHT800_PFMET75_PFMHT75_IDTight_v
+    101: HLT_PFHT800_PFMET85_PFMHT85_IDTight_v
+    102: HLT_PFHT890_v
+    103: HLT_PFHT900_v
+    104: HLT_PFHT1050_v
+    105: HLT_PFJet500_v
+    106: HLT_PFJet550_v
+    107: HLT_PFMET90_PFMHT90_IDTight_v
+    108: HLT_PFMET100_PFMHT100_IDTight_v  *
+    109: HLT_PFMET100_PFMHT100_IDTight_PFHT60_v
+    110: HLT_PFMET110_PFMHT110_IDTight_v  x
+    111: HLT_PFMET110_PFMHT110_IDTight_PFHT60_v
+    112: HLT_PFMET120_PFMHT120_IDTight_v  *
+    113: HLT_PFMET120_PFMHT120_IDTight_PFHT60_v
+    114: HLT_PFMET120_PFMHT120_IDTight_HFCleaned_v
+    115: HLT_PFMET120_PFMHT120_IDTight_PFHT60_HFCleaned_v
+    116: HLT_PFMET130_PFMHT130_IDTight_v
+    117: HLT_PFMET130_PFMHT130_IDTight_PFHT60_v
+    118: HLT_PFMET140_PFMHT140_IDTight_v
+    119: HLT_PFMET140_PFMHT140_IDTight_PFHT60_v
+    120: HLT_PFMET500_PFMHT500_IDTight_CalBTagCSV_3p1_v
+    121: HLT_PFMET700_PFMHT700_IDTight_CalBTagCSV_3p1_v
+    122: HLT_PFMET800_PFMHT800_IDTight_CalBTagCSV_3p1_v
+    123: HLT_PFMETNoMu90_PFMHTNoMu90_IDTight_v
+    124: HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_v  *
+    125: HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60_v
+    126: HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v  x
+    127: HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_PFHT60_v
+    128: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v  *
+    129: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v
+    130: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_HFCleaned_v
+    131: HLT_PFMETNoMu130_PFMHTNoMu130_IDTight_v
+    132: HLT_PFMETNoMu130_PFMHTNoMu130_IDTight_PFHT60_v
+    133: HLT_PFMETNoMu140_PFMHTNoMu140_IDTight_v
+    134: HLT_PFMETNoMu140_PFMHTNoMu140_IDTight_PFHT60_v
    */
-  triggerMap_["zmm"] = {"48", "52", "53", "55", "63"};
+    triggerMap_["zmm"] = {"48", "52", "53", "55", "63"};
+    triggerMap_["zee"] = {"21", "23", "28", "35", "40", "41"};
+    triggerMap_["photon"] = {"141"};
+    triggerMap_["sig"] = {"108", "112", "124", "128"};
   }
-  triggerMap_["zee"] = {"3", "4", "6", "7", "11", "12"};
-  triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco
-  triggerMap_["sig"] = {"42", "43", "44", "46", "47", "48"};
 
   triggerMap_["zll"].reserve(triggerMap_["zmm"].size() + triggerMap_["zee"].size());
   triggerMap_["zll"] = triggerMap_["zmm"];
@@ -719,11 +919,127 @@ RA2bZinvAnalysis::fillCutMaps() {
 
 }  // ======================================================================================
 
+// void
+// RA2bZinvAnalysis::fillCutFlow(TH1F* hcf, Double_t wt) {
+//   hcf->Fill(0.0, wt);
+//   if (HTcut_) {
+//     hcf->Fill(1.0, wt);
+//     if (MHTcut_) {
+//       hcf->Fill(2.0, wt);
+//     }
+//   }
+// }
+
+RA2bZinvAnalysis::cutHistos::cutHistos(TChain* chain, TObjArray* forNotify) : forNotify_(forNotify) {
+  HTcutf_ = new TTreeFormula("HTcut", HTcut_, chain);  forNotify->Add(HTcutf_);
+  MHTcutf_ = new TTreeFormula("MHTcut", MHTcut_, chain);  forNotify->Add(MHTcutf_);
+  NJetscutf_ = new TTreeFormula("NJetscut", NJetscut_, chain);  forNotify->Add(NJetscutf_);
+  minDphicutf_ = new TTreeFormula("minDphicut", minDphicut_, chain);  forNotify->Add(minDphicutf_);
+  objcutf_ = new TTreeFormula("objcut", objcut_, chain);  forNotify->Add(objcutf_);
+  ptcutf_ = new TTreeFormula("ptcut", ptCut_, chain);  forNotify->Add(ptcutf_);
+  masscutf_ = new TTreeFormula("masscut", massCut_, chain);  forNotify->Add(masscutf_);
+  trigcutf_ = new TTreeFormula("trigcut", trigCuts_, chain);  forNotify->Add(trigcutf_);
+  commoncutf_ = new TTreeFormula("commoncut", commonCuts_, chain);  forNotify->Add(commoncutf_);
+}  // ======================================================================================
+
+void
+RA2bZinvAnalysis::cutHistos::fill(TH1F* hcf, Double_t wt) {
+  hcf->GetXaxis()->SetBinLabel(1, "None");
+  hcf->GetXaxis()->SetBinLabel(2, "HT");
+  hcf->GetXaxis()->SetBinLabel(3, "MHT");
+  hcf->GetXaxis()->SetBinLabel(4, "NJets");
+  hcf->GetXaxis()->SetBinLabel(5, "mnDphi");
+  hcf->GetXaxis()->SetBinLabel(6, "objects");
+  hcf->GetXaxis()->SetBinLabel(7, "Zpt");
+  hcf->GetXaxis()->SetBinLabel(8, "Zmass");
+  hcf->GetXaxis()->SetBinLabel(9, "Trigger");
+  hcf->GetXaxis()->SetBinLabel(10, "Filters");
+  hcf->GetXaxis()->LabelsOption("vu");
+
+  HTcutf_->GetNdata();
+  MHTcutf_->GetNdata();
+  NJetscutf_->GetNdata();
+  minDphicutf_->GetNdata();
+  objcutf_->GetNdata();
+  ptcutf_->GetNdata();
+  masscutf_->GetNdata();
+  trigcutf_->GetNdata();
+  commoncutf_->GetNdata();
+
+  hcf->Fill(0.5, wt);
+  if (TString(hcf->GetName()).Contains(TString("Flow"))) {
+    if (HTcutf_->EvalInstance(0)) {
+      hcf->Fill(1.5, wt);
+      if (MHTcutf_->EvalInstance(0)) {
+	hcf->Fill(2.5, wt);
+	if (NJetscutf_->EvalInstance(0)) {
+	  hcf->Fill(3.5, wt);
+	  if (minDphicutf_->EvalInstance(0)) {
+	    hcf->Fill(4.5, wt);
+	    if (objcutf_->EvalInstance(0)) {
+	      hcf->Fill(5.5, wt);
+	      if (ptcutf_->EvalInstance(0)) {
+		hcf->Fill(6.5, wt);
+		if (masscutf_->EvalInstance(0)) {
+		  hcf->Fill(7.5, wt);
+		  if (trigcutf_->EvalInstance(0)) {
+		    hcf->Fill(8.5, wt);
+		    if (commoncutf_->EvalInstance(0)) {
+		      hcf->Fill(9.5, wt);
+		    }
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  } else {
+    if (HTcutf_->EvalInstance(0)) hcf->Fill(1.5, wt);
+    if (MHTcutf_->EvalInstance(0)) hcf->Fill(2.5, wt);
+    if (NJetscutf_->EvalInstance(0)) hcf->Fill(3.5, wt);
+    if (minDphicutf_->EvalInstance(0)) hcf->Fill(4.5, wt);
+    if (objcutf_->EvalInstance(0)) hcf->Fill(5.5, wt);
+    if (ptcutf_->EvalInstance(0)) hcf->Fill(6.5, wt);
+    if (masscutf_->EvalInstance(0)) hcf->Fill(7.5, wt);
+    if (trigcutf_->EvalInstance(0)) hcf->Fill(8.5, wt);
+    if (commoncutf_->EvalInstance(0)) hcf->Fill(9.5, wt);
+  }
+}  // ======================================================================================
+
 void
 RA2bZinvAnalysis::runMakeClass(const char* sample, const char* ext) {
   TChain* chain = getChain(sample, nullptr, false);
   TString templateName("TreeMkrTemplate_");
   templateName += ext;
   chain->MakeClass(templateName.Data());
+
+}  // ======================================================================================
+
+void
+RA2bZinvAnalysis::checkTrigPrescales(const char* sample) {
+  Int_t fCurrent;  // current Tree number in a TChain
+  TChain* chain = getChain(sample, &fCurrent);
+  Long64_t Nentries = chain->GetEntries();
+  Int_t countInFile = 0;
+  for (Long64_t entry = 0; entry < Nentries; ++entry) {
+    chain->LoadTree(entry);
+    if (chain->GetTreeNumber() != fCurrent) {
+      fCurrent = chain->GetTreeNumber();
+      TFile* thisFile = chain->GetCurrentFile();
+      if (thisFile) cout << "Current file in chain: " << thisFile->GetName() << endl;
+      countInFile = 0;
+    }
+    chain->GetEntry(entry);
+    countInFile++;
+    if (countInFile == 1) {
+      int trigNo = 0;
+      for (auto & theTrigPrescale : *TriggerPrescales) {
+	if (theTrigPrescale != 1) cout << trigNo << ":  " << theTrigPrescale << endl;
+    	++trigNo;
+      }
+    }
+  }
 
 }  // ======================================================================================
