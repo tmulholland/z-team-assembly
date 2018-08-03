@@ -22,7 +22,8 @@
 #include <TChainElement.h>
 #include "../../Analysis/btag/BTagCorrector.h"
 
-/* #include "TreeMkr_unskimmed_data_V15.h" */
+enum class dataStatus {data, MC};
+enum class skimStatus {skimmed, unskimmed};
 
 // members needed by nested class cutHistos
 static TString HTcut_;
@@ -39,7 +40,7 @@ class RA2bZinvAnalysis {
 
 public:
   RA2bZinvAnalysis();
-
+  RA2bZinvAnalysis(dataStatus datastat, TString ntupleVersion, skimStatus skimstat = skimStatus::skimmed);
   virtual ~RA2bZinvAnalysis() {};
 
   TChain* getChain(const char* sample, Int_t* fCurrent = nullptr, bool setBrAddr = true);
@@ -154,6 +155,7 @@ private:
   ivector_map toCCbin_;
   std::vector<const char*> activeBranches_;
 
+  void Init();
   void fillFileMap();
   void fillCutMaps();
   void bookAndFillHistograms(const char* sample, std::vector<hist1D*>& histograms);
@@ -178,8 +180,6 @@ private:
     DeltaPhi4 = DeltaPhi4clean;
 #endif
   };
-
-  /* TreeMkrBase* tmt_; */
 
   // Functions to fill histograms with non-double, non-int types
   void fillZmass(TH1F* h, double wt) {for (auto & theZ : *ZCandidates) h->Fill(theZ.M(), wt);}

@@ -31,32 +31,43 @@ ClassImp(RA2bZinvAnalysis)
 
 // ======================================================================================
 
-RA2bZinvAnalysis::RA2bZinvAnalysis() :
-  era_("2016"),
-  ntupleVersion_("V12"),
-  isSkim_(true),
-  isMC_(false),
-  intLumi_(1),
-  treeLoc_(""),
-  treeName_("tree"),
-  deltaPhi_("nominal"),
-  // deltaPhi_("hdp"),
-  applyMassCut_(true),
-  applyPtCut_(true),
-  applyMinDeltaRCut_(true),
-  // applySF_(false),
-  // njSplit_(false),
-  useTreeCCbin_(true),  // only in skims
-  applyBTagSF_(false),  // overridden false if !isMC_
-  applyPuWeight_(true),  // overridden false if !isMC_
-  customPuWeight_(true),  // Substitute Kevin P recipe for the PuWeight in the tree
-  puWeight(1),  // overridden from tree if isMC_
-  Weight(1),  // overridden from tree if isMC_
-  TrueNumInteractions(20),  // overridden from tree if isMC_
-  RA2bin(0),  // overridden from tree if isSkim
-  NElectrons(0),  // overriden from tree if >=V15
-  NMuons(0)  // overriden from tree if >=V15
-{
+RA2bZinvAnalysis::RA2bZinvAnalysis() : isMC_(false), ntupleVersion_("V12"), isSkim_(true) {
+  Init();
+}
+
+RA2bZinvAnalysis::RA2bZinvAnalysis(dataStatus datastat, TString ntupleVersion, skimStatus skimstat) {
+  if (datastat == dataStatus::MC) isMC_ = true;
+  else isMC_ = false;
+  ntupleVersion_ = ntupleVersion;
+  if (skimstat == skimStatus::skimmed) isSkim_ = true;
+  else isSkim_ = false;
+  Init();
+}
+
+void
+RA2bZinvAnalysis::Init() {
+  era_ = "2016";
+  intLumi_ = 1;
+  treeLoc_ = "";
+  treeName_ = "tree";
+  deltaPhi_ = "nominal";
+  // deltaPhi_ = "hdp";
+  applyMassCut_ = true;
+  applyPtCut_ = true;
+  applyMinDeltaRCut_ = true;
+  // applySF_ = false;
+  // njSplit_ = false;
+  useTreeCCbin_ = true;  // only in skims
+  applyBTagSF_ = false;  // overridden false if !isMC_
+  applyPuWeight_ = true;  // overridden false if !isMC_
+  customPuWeight_ = true;  // Substitute Kevin P recipe for the PuWeight in the tree
+  puWeight = 1;  // overridden from tree if isMC_
+  Weight = 1;  // overridden from tree if isMC_
+  TrueNumInteractions = 20;  // overridden from tree if isMC_
+  RA2bin = 0;  // overridden from tree if isSkim
+  NElectrons = 0;  // overriden from tree if >=V15
+  NMuons = 0;  // overriden from tree if >=V15
+
   if (!isMC_) {
     applyBTagSF_ = false;
     applyPuWeight_ = false;
@@ -76,7 +87,6 @@ RA2bZinvAnalysis::RA2bZinvAnalysis() :
     treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV15";  // ntuples, xrootd
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // xrootd
     // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // from cmslpc
-    // tmt_ = new TreeMkr_unskimmed_data_V15;
   }
   if (era_ == TString("2016")) {
     intLumi_ = 35.9;
@@ -246,12 +256,12 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   }
 
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
-    massCut_ = "@ZCandidates.size()==1&&ZCandidates[0].M()>=76.188 && ZCandidates[0].M()<=106.188";
-    // massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
+    // massCut_ = "@ZCandidates.size()==1 && ZCandidates[0].M()>=76.188 && ZCandidates[0].M()<=106.188";
+    massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
 
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
-    ptCut_ = "@ZCandidates.size()==1&&ZCandidates[0].Pt()>=200.";
-     // ptCut_ = "ZCandidates.Pt()>=200.";
+    // ptCut_ = "@ZCandidates.size()==1 && ZCandidates[0].Pt()>=200.";
+     ptCut_ = "ZCandidates.Pt()>=200.";
     // ptCut_ = "ZCandidates.Pt()>=100.";  // Troy revision
 
   TString photonDeltaRcut;
@@ -264,6 +274,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     commonCuts_ = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision-
   } else {
     commonCuts_ = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision-
+    trigCuts_ = "";
     int Ntrig = trigger.size();
     if (Ntrig > 1) trigCuts_ += TString("(");
     for (auto theTrigger : trigger)
@@ -361,6 +372,8 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
     }
     chain->GetEntry(entry);
     cleanVars();  // If unskimmed input, copy <var>clean to <var>
+
+    if (ZCandidates->size() > 1) cout << ZCandidates->size() << " Z candidates found" << endl;
 
     Double_t eventWt = 1;
     Double_t PUweight = 1;
