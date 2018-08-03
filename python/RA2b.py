@@ -46,7 +46,8 @@ def cmsLumi(pad,  iPeriod=None,  iPosX=None, extraText=None ):
     lumi_13TeV = "2.3 fb^{-1}"
     lumi_13TeV_2016 = "20 fb^{-1}"
     lumi_13TeV_V8 = "4.0 fb^{-1}"
-    lumi_13TeV_V9 = "36.1 fb^{-1}"
+    lumi_13TeV_V9 = "35.9 fb^{-1}"
+    lumi_13TeV_V15 = "14.0 fb^{-1}"
     lumi_8TeV  = "19.7 fb^{-1}" 
     lumi_7TeV  = "5.1 fb^{-1}"
     lumi_sqrtS = ""
@@ -108,6 +109,9 @@ def cmsLumi(pad,  iPeriod=None,  iPosX=None, extraText=None ):
         lumiText += lumi_7TeV
         lumiText += " (7 TeV)"
         if( outOfFrame): lumiText += "}"
+    elif ( iPeriod==8 ):
+        lumiText += lumi_13TeV_V15
+        lumiText += " (13 TeV)"
     elif ( iPeriod==12 ):
         lumiText += "8 TeV"
     elif ( iPeriod==0 ):
@@ -118,7 +122,8 @@ def cmsLumi(pad,  iPeriod=None,  iPosX=None, extraText=None ):
     latex = ROOT.TLatex()
     latex.SetNDC()
     latex.SetTextAngle(0)
-    latex.SetTextColor(ROOT.kBlack)    
+    # latex.SetTextColor(ROOT.kBlack)    
+    latex.SetTextColor(1)    
     
     extraTextSize = extraOverCmsTextSize*cmsTextSize
     
@@ -196,14 +201,16 @@ def setTdrStyle():
 
     #for the canvas:
     tdrStyle.SetCanvasBorderMode(0)
-    tdrStyle.SetCanvasColor(ROOT.kWhite)
+    # tdrStyle.SetCanvasColor(ROOT.kWhite)
+    tdrStyle.SetCanvasColor(0)
     tdrStyle.SetCanvasDefH(600) #Height of canvas
     tdrStyle.SetCanvasDefW(600) #Width of canvas
     tdrStyle.SetCanvasDefX(0)   #POsition on screen
     tdrStyle.SetCanvasDefY(0)
     
     tdrStyle.SetPadBorderMode(0)
-    tdrStyle.SetPadColor(ROOT.kWhite)
+    # tdrStyle.SetPadColor(ROOT.kWhite)
+    tdrStyle.SetPadColor(0)
     tdrStyle.SetPadGridX(False)
     tdrStyle.SetPadGridY(False)
     tdrStyle.SetGridColor(0)
@@ -243,7 +250,8 @@ def setTdrStyle():
     # For the statistics box:
     tdrStyle.SetOptFile(0)
     tdrStyle.SetOptStat(0) # To display the mean and RMS:   SetOptStat("mr")
-    tdrStyle.SetStatColor(ROOT.kWhite)
+    # tdrStyle.SetStatColor(ROOT.kWhite)
+    tdrStyle.SetStatColor(0)
     tdrStyle.SetStatFont(42)
     tdrStyle.SetStatFontSize(0.025)
     tdrStyle.SetStatTextColor(1)
@@ -290,6 +298,7 @@ def setTdrStyle():
     tdrStyle.SetNdivisions(510, "XYZ")
     tdrStyle.SetPadTickX(1)  # To get tick marks on the opposite side of the frame
     tdrStyle.SetPadTickY(1)
+
     
     # Change for log plots:
     tdrStyle.SetOptLogx(0)
@@ -300,7 +309,7 @@ def setTdrStyle():
     tdrStyle.SetPaperSize(20.,20.)
     tdrStyle.SetHatchesLineWidth(5)
     tdrStyle.SetHatchesSpacing(0.05)
-    
+
     tdrStyle.cd()
 
 
@@ -3222,7 +3231,8 @@ def getPlotAndRatio(numHists, denomHists=None, bottomPlots=None, doStack=None, T
         topGridy=False
     if(doClosureStyle==True):
         errorBandFillStyle=3144
-        errorBandColor = ROOT.kRed-10
+        # errorBandColor = ROOT.kRed-10
+        errorBandColor = 632-10
         ratioTitle = "#frac{Direct}{Prediction} "
         extraText = "Simulation"
         xTitle = "Search region bin number"
@@ -3448,7 +3458,7 @@ def getPlotAndRatio(numHists, denomHists=None, bottomPlots=None, doStack=None, T
     
     if(not(doClosureStyle)):
         denomHist.Draw(denomDrawStyle)
-        
+
     hs = ROOT.THStack("hs","hs")
     if(doStack):
         for i in range(len(denomHists)):
@@ -3686,7 +3696,8 @@ def getDevSyst(hists, binSplit=None, doFlip=None):
             eHistList[i].SetBinError(j,systList[i])
             
         eHistList[i].SetFillStyle(3004)
-        eHistList[i].SetFillColor(ROOT.kRed)
+        # eHistList[i].SetFillColor(ROOT.kRed)
+        eHistList[i].SetFillColor(632)
 
         eHistList[i].SetMarkerSize(0.0001)
 
@@ -4779,7 +4790,8 @@ def getZmassFitPlot(fitFunc=None, dataSet=None, mcSet=None, plotMC=None, doDiMu=
                 leg1 = ROOT.TLegend(0.65,0.60,0.85,0.88, "","brNDC")
                 leg1.SetBorderSize(2)
                 leg1.SetFillStyle(1001)
-                leg1.SetFillColor(ROOT.kWhite) 
+                # leg1.SetFillColor(ROOT.kWhite) 
+                leg1.SetFillColor(0) 
                 leg1.AddEntry(mcList[0],"Drell-Yan MC","f")
                 leg1.AddEntry(mcList[1],"t#bar{t}Z MC","f")
                 leg1.AddEntry(mcList[2],"VV MC","f")
