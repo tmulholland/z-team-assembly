@@ -14,7 +14,7 @@
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
   bool do1Dzmm = true;
-  bool do1Dzee = false;
+  bool do1Dzee = true;
   bool do1Ddymm = false;
   bool do1Ddyee = false;
   bool do1Dttzmm = false;

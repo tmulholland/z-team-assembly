@@ -246,10 +246,12 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   }
 
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
-    massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
+    massCut_ = "@ZCandidates.size()==1&&ZCandidates[0].M()>=76.188 && ZCandidates[0].M()<=106.188";
+    // massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
 
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
-    ptCut_ = "ZCandidates.Pt()>=200.";
+    ptCut_ = "@ZCandidates.size()==1&&ZCandidates[0].Pt()>=200.";
+     // ptCut_ = "ZCandidates.Pt()>=200.";
     // ptCut_ = "ZCandidates.Pt()>=100.";  // Troy revision
 
   TString photonDeltaRcut;
@@ -278,9 +280,14 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     // 	if(extraCuts!=None):
     //     cuts+=extraCuts
 
-  HTcut_ = std::string("HT>=") + std::to_string(kinThresholds_[0][1]);
+  if (isSkim_) {
+    HTcut_ = std::string("HT>=") + std::to_string(kinThresholds_[0][1]);
+    NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
+  } else {
+    HTcut_ = std::string("HTclean>=") + std::to_string(kinThresholds_[0][1]);
+    NJetscut_ = std::string("NJetsclean>=") + std::to_string(nJetThresholds_[0]);
+  }
   MHTcut_ = MHTCutMap_.at(deltaPhi_);
-  NJetscut_ = std::string("NJets>=") + std::to_string(nJetThresholds_[0]);
   objcut_ = objCutMap_.at(sampleKey);
   minDphicut_ = minDphiCutMap_.at(deltaPhi_);
 
@@ -314,7 +321,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   //
   TCut baselineCuts = getCuts(sample);
   cout << "baseline = " << endl << baselineCuts << endl;
-  Int_t fCurrent; //!current Tree number in a TChain
+  Int_t fCurrent;  // current Tree number in a TChain
   TChain* chain = getChain(sample, &fCurrent);
   TObjArray* forNotify = new TObjArray;
 
@@ -325,8 +332,12 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
     hg->hist->GetYaxis()->SetTitle(hg->axisTitles.second);
     hg->hist->SetOption("HIST");
     hg->hist->SetMarkerSize(0);
-    hg->NminusOneCuts = baselineCuts;
-    for (auto cutToOmit : hg->omitCut) hg->NminusOneCuts(*cutToOmit) = "1";
+    if (hg->name.Contains(TString("hCut"))) {
+      hg->NminusOneCuts = "1";
+    } else {
+      hg->NminusOneCuts = baselineCuts;
+      for (auto cutToOmit : hg->omitCut) hg->NminusOneCuts(*cutToOmit) = "1";
+    }
     cout << "For sample " << sample << ", histo " << hg->name  << ", hg->omitCut = ";
     for (auto cutToOmit : hg->omitCut) cout << *cutToOmit << " ";
     cout << ", cuts = " << endl << hg->NminusOneCuts << endl;
@@ -350,9 +361,6 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
     }
     chain->GetEntry(entry);
     cleanVars();  // If unskimmed input, copy <var>clean to <var>
-    // cout << "NJets, Jets.size = " << NJets << ", " << Jets->size() << endl;
-    // cout << "          " << HT << ",            " << MHT << endl;
-    // cout << "ev" << HT << "  " << MHT << "  " << NJets << "  " << BTags << endl;
 
     Double_t eventWt = 1;
     Double_t PUweight = 1;
@@ -678,239 +686,63 @@ RA2bZinvAnalysis::fillCutMaps() {
   sampleKeyMap_["ttgjets"] = "photon";
   sampleKeyMap_["gjetsqcd"] = "photonqcd";
 
-  if (ntupleVersion_ == "V12") {
-    objCutMap_["sig"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-    objCutMap_["zmm"] = "@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
-    objCutMap_["zee"] = "@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
-    objCutMap_["zll"] = "((@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0) || (@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0))";
-    objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-    objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-    objCutMap_["ttz"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
-    objCutMap_["slm"] = "@Muons.size()==1 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0";
-    objCutMap_["sle"] = "@Muons.size()==0 && @Electrons.size()==1 && isoMuonTracks==0 && isoPionTracks==0";
-  } else if (ntupleVersion_ == "V15") {
-    objCutMap_["sig"] = "NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-    objCutMap_["zmm"] = "NMuons==2 && NElectrons==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
-    objCutMap_["zee"] = "NMuons==0 && NElectrons==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
-    objCutMap_["zll"] = "((NMuons==2 && NElectrons==0 && isoElectronTracks==0 && isoPionTracks==0) || (NMuons==0 && NElectrons==2 && isoMuonTracks==0 && isoPionTracks==0))";
-    objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-    objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-    objCutMap_["ttz"] = "NMuons==0 && NElectrons==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
-    objCutMap_["slm"] = "NMuons==1 && NElectrons==0 && isoElectronTracks==0 && isoPionTracks==0";
-    objCutMap_["sle"] = "NMuons==0 && NElectrons==1 && isoMuonTracks==0 && isoPionTracks==0";
+  if (isSkim_) {
+    if (ntupleVersion_ == "V12") {
+      objCutMap_["sig"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+      objCutMap_["zmm"] = "@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
+      objCutMap_["zee"] = "@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
+      objCutMap_["zll"] = "((@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0) || (@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0))";
+      objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+      objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+      objCutMap_["ttz"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
+      objCutMap_["slm"] = "@Muons.size()==1 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0";
+      objCutMap_["sle"] = "@Muons.size()==0 && @Electrons.size()==1 && isoMuonTracks==0 && isoPionTracks==0";
+    } else if (ntupleVersion_ == "V15") {
+    }
+
+    minDphiCutMap_["nominal"] = "DeltaPhi1>0.5 && DeltaPhi2>0.5 && DeltaPhi3>0.3 && DeltaPhi4>0.3";
+    minDphiCutMap_["hdp"] = "DeltaPhi1>0.5 && DeltaPhi2>0.5 && DeltaPhi3>0.3 && DeltaPhi4>0.3";
+    minDphiCutMap_["ldp"] = "(DeltaPhi1<0.5 || DeltaPhi2<0.5 || DeltaPhi3<0.3 || DeltaPhi4<0.3)";
+
+    MHTCutMap_["nominal"] = "MHT>=300";
+    MHTCutMap_["hdp"] = "MHT>=250";
+    MHTCutMap_["ldp"] = "MHT>=250";
+
+  } else {
+
+    if (ntupleVersion_ == "V12") {
+    } else if (ntupleVersion_ == "V15") {
+      objCutMap_["sig"] = "NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["zmm"] = "NMuons==2 && NElectrons==0 && isoElectronTracksclean==0 && isoPionTracksclean==0 && (@Photons.size()==0) && isoMuonTracksclean==0";
+      objCutMap_["zee"] = "NMuons==0 && NElectrons==2 && isoMuonTracksclean==0 && isoPionTracksclean==0 && (@Photons.size()==0) && isoElectronTracksclean==0";
+      objCutMap_["zll"] = "((NMuons==2 && NElectrons==0 && isoElectronTracksclean==0 && isoPionTracksclean==0) || (NMuons==0 && NElectrons==2 && isoMuonTracksclean==0 && isoPionTracksclean==0))";
+      objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["ttz"] = "NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
+      objCutMap_["slm"] = "NMuons==1 && NElectrons==0 && isoElectronTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["sle"] = "NMuons==0 && NElectrons==1 && isoMuonTracksclean==0 && isoPionTracksclean==0";
+    }
+
+    minDphiCutMap_["nominal"] = "DeltaPhi1clean>0.5 && DeltaPhi2clean>0.5 && DeltaPhi3clean>0.3 && DeltaPhi4clean>0.3";
+    minDphiCutMap_["hdp"] = "DeltaPhi1clean>0.5 && DeltaPhi2clean>0.5 && DeltaPhi3clean>0.3 && DeltaPhi4clean>0.3";
+    minDphiCutMap_["ldp"] = "(DeltaPhi1clean<0.5 || DeltaPhi2clean<0.5 || DeltaPhi3clean<0.3 || DeltaPhi4clean<0.3)";
+
+    MHTCutMap_["nominal"] = "MHTclean>=300";
+    MHTCutMap_["hdp"] = "MHTclean>=250";
+    MHTCutMap_["ldp"] = "MHTclean>=250";
   }
 
-  minDphiCutMap_["nominal"] = "DeltaPhi1>0.5 && DeltaPhi2>0.5 && DeltaPhi3>0.3 && DeltaPhi4>0.3";
-  minDphiCutMap_["hdp"] = "DeltaPhi1>0.5 && DeltaPhi2>0.5 && DeltaPhi3>0.3 && DeltaPhi4>0.3";
-  minDphiCutMap_["ldp"] = "(DeltaPhi1<0.5 || DeltaPhi2<0.5 || DeltaPhi3<0.3 || DeltaPhi4<0.3)";
-
-  MHTCutMap_["nominal"] = "MHT>=300";
-  MHTCutMap_["hdp"] = "MHT>=250";
-  MHTCutMap_["ldp"] = "MHT>=250";
-
   if (ntupleVersion_ == "V12") {
-  /*
-    V12, 2016:
-    3: HLT_Ele105_CaloIdVT_GsfTrkIdT_v  *
-    4: HLT_Ele115_CaloIdVT_GsfTrkIdT_v  *
-    5: HLT_Ele15_IsoVVVL_PFHT350_PFMET50_v
-    6: HLT_Ele15_IsoVVVL_PFHT350_v  *
-    7: HLT_Ele15_IsoVVVL_PFHT400_v  *
-    8: HLT_Ele15_IsoVVVL_PFHT600_v
-    9: HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v
-    10: HLT_Ele25_eta2p1_WPTight_Gsf_v 
-    11: HLT_Ele27_WPTight_Gsf_v  *
-    12: HLT_Ele27_eta2p1_WPLoose_Gsf_v  *
-    13: HLT_Ele45_WPLoose_Gsf_v
-    14: HLT_Ele50_IsoVVVL_PFHT400_v
-
-    18: HLT_IsoMu24_v  *
-    19: HLT_IsoTkMu22_v
-    20: HLT_IsoTkMu24_v  *
-    21: HLT_Mu15_IsoVVVL_PFHT350_PFMET50_v
-    22: HLT_Mu15_IsoVVVL_PFHT350_v  *
-    23: HLT_Mu15_IsoVVVL_PFHT400_v  *
-    24: HLT_Mu15_IsoVVVL_PFHT600_v
-    25: HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v
-    26: HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v
-    27: HLT_Mu45_eta2p1_v
-    28: HLT_Mu50_IsoVVVL_PFHT400_v
-    29: HLT_Mu50_v  *
-
-    50: HLT_Photon135_PFMET100_v
-    51: HLT_Photon165_HE10_v
-    52: HLT_Photon175_v  *
-    53: HLT_Photon90_CaloIdL_PFHT500_v
-    54: HLT_Photon90_CaloIdL_PFHT600_v
-    55: HLT_TkMu50_v
-
-    30: HLT_PFHT200_v
-    31: HLT_PFHT250_v
-    32: HLT_PFHT300_PFMET100_v
-    33: HLT_PFHT300_PFMET110_v
-    34: HLT_PFHT300_v
-    35: HLT_PFHT350_v
-    36: HLT_PFHT400_v
-    37: HLT_PFHT475_v
-    38: HLT_PFHT600_v
-    39: HLT_PFHT650_v
-    40: HLT_PFHT800_v
-    41: HLT_PFHT900_v
-    42: HLT_PFMET100_PFMHT100_IDTight_v  *
-    43: HLT_PFMET110_PFMHT110_IDTight_v  *
-    44: HLT_PFMET120_PFMHT120_IDTight_v  *
-    45: HLT_PFMET90_PFMHT90_IDTight_v
-    46: HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_v  *
-    47: HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v  *
-    48: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v  *
-    49: HLT_PFMETNoMu90_PFMHTNoMu90_IDTight_v
-  */
     triggerMap_["zmm"] = {"18", "20", "22", "23", "29"};
     triggerMap_["zee"] = {"3", "4", "6", "7", "11", "12"};
     triggerMap_["photon"] = {"52"};  // re-miniAOD; 51 for ReReco/PromptReco
     triggerMap_["sig"] = {"42", "43", "44", "46", "47", "48"};
   } else if (ntupleVersion_ == "V15") {
-  /*
-    V15, 2018
-    17: HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v
-    18: HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_DZ_PFHT350_v
-    ...
-    21: HLT_Ele15_IsoVVVL_PFHT350_v  *
-    22: HLT_Ele15_IsoVVVL_PFHT350_PFMET50_v
-    23: HLT_Ele15_IsoVVVL_PFHT400_v  *
-    24: HLT_Ele15_IsoVVVL_PFHT450_v
-    25: HLT_Ele15_IsoVVVL_PFHT450_CaloBTagCSV_4p5_v
-    26: HLT_Ele15_IsoVVVL_PFHT450_PFMET50_v
-    27: HLT_Ele15_IsoVVVL_PFHT600_v
-    28: HLT_Ele20_eta2p1_WPLoose_Gsf_v  *
-    29: HLT_Ele20_WPLoose_Gsf_v
-    30: HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v
-    31: HLT_Ele25_eta2p1_WPTight_Gsf_v
-    32: HLT_Ele27_WPTight_Gsf_v  x
-    33: HLT_Ele27_eta2p1_WPLoose_Gsf_v  x
-    34: HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v
-    35: HLT_Ele32_WPTight_Gsf_v  *
-    36: HLT_Ele35_WPTight_Gsf_v
-    37: HLT_Ele45_WPLoose_Gsf_v
-    38: HLT_Ele50_IsoVVVL_PFHT400_v
-    39: HLT_Ele50_IsoVVVL_PFHT450_v
-    40: HLT_Ele105_CaloIdVT_GsfTrkIdT_v  *
-    41: HLT_Ele115_CaloIdVT_GsfTrkIdT_v  *
-    42: HLT_Ele135_CaloIdVT_GsfTrkIdT_v
-    43: HLT_Ele145_CaloIdVT_GsfTrkIdT_v
-
-    19: HLT_DoubleMu8_Mass8_PFHT300_v
-    20: HLT_DoubleMu8_Mass8_PFHT350_v
-    ...
-    44: HLT_IsoMu16_eta2p1_MET30_v
-    45: HLT_IsoMu20_v
-    46: HLT_IsoMu22_v
-    47: HLT_IsoMu22_eta2p1_v
-    48: HLT_IsoMu24_v  *  prescaled in late 2017 --Owen
-    49: HLT_IsoMu24_eta2p1_v
-    50: HLT_IsoMu27_v
-    51: HLT_IsoTkMu22_v
-    52: HLT_IsoTkMu24_v  *
-    53: HLT_Mu15_IsoVVVL_PFHT350_v  *
-    54: HLT_Mu15_IsoVVVL_PFHT350_PFMET50_v
-    55: HLT_Mu15_IsoVVVL_PFHT400_v  *
-    56: HLT_Mu15_IsoVVVL_PFHT450_v
-    57: HLT_Mu15_IsoVVVL_PFHT450_CaloBTagCSV_4p5_v
-    58: HLT_Mu15_IsoVVVL_PFHT450_PFMET50_v
-    59: HLT_Mu15_IsoVVVL_PFHT600_v
-    60: HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v
-    61: HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v
-    62: HLT_Mu45_eta2p1_v
-    63: HLT_Mu50_v  *
-    64: HLT_Mu50_IsoVVVL_PFHT400_v
-    65: HLT_Mu50_IsoVVVL_PFHT450_v
-    66: HLT_Mu55_v
-
-    135: HLT_Photon90_CaloIdL_PFHT500_v
-    136: HLT_Photon90_CaloIdL_PFHT600_v
-    137: HLT_Photon90_CaloIdL_PFHT700_v
-    138: HLT_Photon135_PFMET100_v
-    139: HLT_Photon165_HE10_v
-    140: HLT_Photon165_R9Id90_HE10_IsoM_v
-    141: HLT_Photon175_v  *
-    142: HLT_Photon200_v
-    143: HLT_Photon300_NoHE_v
-
-    67: HLT_PFHT200_v
-    68: HLT_PFHT250_v
-    69: HLT_PFHT300_v
-    70: HLT_PFHT300_PFMET100_v
-    71: HLT_PFHT300_PFMET110_v
-    72: HLT_PFHT350_v
-    73: HLT_PFHT370_v
-    74: HLT_PFHT380_SixPFJet32_v
-    75: HLT_PFHT380_SixPFJet32_DoublePFBTagCSV_2p2_v
-    76: HLT_PFHT380_SixPFJet32_DoublePFBTagDeepCSV_2p2_v
-    77: HLT_PFHT400_v
-    78: HLT_PFHT400_SixJet30_v
-    79: HLT_PFHT400_SixJet30_DoubleBTagCSV_p056_v
-    80: HLT_PFHT430_v
-    81: HLT_PFHT430_SixJet40_BTagCSV_p056_v
-    82: HLT_PFHT430_SixPFJet40_PFBTagCSV_1p5_v
-    83: HLT_PFHT430_SixPFJet40_v
-    84: HLT_PFHT450_SixJet40_v
-    85: HLT_PFHT450_SixJet40_BTagCSV_p056_v
-    86: HLT_PFHT450_SixPFJet40_PFBTagCSV_1p5_v
-    87: HLT_PFHT475_v
-    88: HLT_PFHT500_PFMET100_PFMHT100_IDTight_v
-    89: HLT_PFHT500_PFMET110_PFMHT110_IDTight_v
-    90: HLT_PFHT510_v
-    91: HLT_PFHT590_v
-    92: HLT_PFHT600_v
-    93: HLT_PFHT650_v
-    94: HLT_PFHT650_WideJetMJJ900DEtaJJ1p5_v
-    95: HLT_PFHT680_v
-    96: HLT_PFHT700_PFMET85_PFMHT85_IDTight_v
-    97: HLT_PFHT700_PFMET95_PFMHT95_IDTight_v
-    98: HLT_PFHT780_v
-    99: HLT_PFHT800_v
-    100: HLT_PFHT800_PFMET75_PFMHT75_IDTight_v
-    101: HLT_PFHT800_PFMET85_PFMHT85_IDTight_v
-    102: HLT_PFHT890_v
-    103: HLT_PFHT900_v
-    104: HLT_PFHT1050_v
-    105: HLT_PFJet500_v
-    106: HLT_PFJet550_v
-    107: HLT_PFMET90_PFMHT90_IDTight_v
-    108: HLT_PFMET100_PFMHT100_IDTight_v  *
-    109: HLT_PFMET100_PFMHT100_IDTight_PFHT60_v
-    110: HLT_PFMET110_PFMHT110_IDTight_v  x
-    111: HLT_PFMET110_PFMHT110_IDTight_PFHT60_v
-    112: HLT_PFMET120_PFMHT120_IDTight_v  *
-    113: HLT_PFMET120_PFMHT120_IDTight_PFHT60_v
-    114: HLT_PFMET120_PFMHT120_IDTight_HFCleaned_v
-    115: HLT_PFMET120_PFMHT120_IDTight_PFHT60_HFCleaned_v
-    116: HLT_PFMET130_PFMHT130_IDTight_v
-    117: HLT_PFMET130_PFMHT130_IDTight_PFHT60_v
-    118: HLT_PFMET140_PFMHT140_IDTight_v
-    119: HLT_PFMET140_PFMHT140_IDTight_PFHT60_v
-    120: HLT_PFMET500_PFMHT500_IDTight_CalBTagCSV_3p1_v
-    121: HLT_PFMET700_PFMHT700_IDTight_CalBTagCSV_3p1_v
-    122: HLT_PFMET800_PFMHT800_IDTight_CalBTagCSV_3p1_v
-    123: HLT_PFMETNoMu90_PFMHTNoMu90_IDTight_v
-    124: HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_v  *
-    125: HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60_v
-    126: HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v  x
-    127: HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_PFHT60_v
-    128: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v  *
-    129: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v
-    130: HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_HFCleaned_v
-    131: HLT_PFMETNoMu130_PFMHTNoMu130_IDTight_v
-    132: HLT_PFMETNoMu130_PFMHTNoMu130_IDTight_PFHT60_v
-    133: HLT_PFMETNoMu140_PFMHTNoMu140_IDTight_v
-    134: HLT_PFMETNoMu140_PFMHTNoMu140_IDTight_PFHT60_v
-   */
-    triggerMap_["zmm"] = {"48", "52", "53", "55", "63"};
+    triggerMap_["zmm"] = {"48", "52", "53", "55", "63"};  // 48 prescaled in late 2017 --Owen
     triggerMap_["zee"] = {"21", "23", "28", "35", "40", "41"};
     triggerMap_["photon"] = {"141"};
     triggerMap_["sig"] = {"108", "112", "124", "128"};
   }
-
   triggerMap_["zll"].reserve(triggerMap_["zmm"].size() + triggerMap_["zee"].size());
   triggerMap_["zll"] = triggerMap_["zmm"];
   triggerMap_["zll"].insert(triggerMap_["zll"].end(), triggerMap_["zee"].begin(), triggerMap_["zee"].end());
@@ -918,17 +750,6 @@ RA2bZinvAnalysis::fillCutMaps() {
   triggerMap_["slm"] = triggerMap_["sig"];
 
 }  // ======================================================================================
-
-// void
-// RA2bZinvAnalysis::fillCutFlow(TH1F* hcf, Double_t wt) {
-//   hcf->Fill(0.0, wt);
-//   if (HTcut_) {
-//     hcf->Fill(1.0, wt);
-//     if (MHTcut_) {
-//       hcf->Fill(2.0, wt);
-//     }
-//   }
-// }
 
 RA2bZinvAnalysis::cutHistos::cutHistos(TChain* chain, TObjArray* forNotify) : forNotify_(forNotify) {
   HTcutf_ = new TTreeFormula("HTcut", HTcut_, chain);  forNotify->Add(HTcutf_);

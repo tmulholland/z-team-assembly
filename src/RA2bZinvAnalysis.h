@@ -161,10 +161,6 @@ private:
 
   void cleanVars() {
 #ifndef ISSKIM
-    /* cout << "NJets, Jets.size ( , clean) = (" << NJets << ", " << NJetsclean << "), (" */
-    /* 	 << Jets->size() << ", " << Jetsclean->size() << ")" << endl; */
-    /* cout << "HT      = " << HT << ", MHT      = " << MHT << ", NJets      = " << NJets << endl; */
-    /* cout << "HTclean = " << HTclean << ", MHTclean = " << MHTclean << ", NJetsclean = " << NJetsclean << endl; */
     NJets = NJetsclean;
     BTags = BTagsclean;
     HT = HTclean;
