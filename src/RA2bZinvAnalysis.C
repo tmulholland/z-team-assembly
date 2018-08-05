@@ -80,9 +80,9 @@ RA2bZinvAnalysis::Init() {
   }
   if (ntupleVersion_ == "V12") {
     // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by wtford (Zjets only)
-    treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
+    // treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // xrootd
-    // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
+    treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
   } else if (ntupleVersion_ == "V15") {
     treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV15";  // ntuples, xrootd
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // xrootd
@@ -255,37 +255,38 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
     return cuts;
   }
 
-  if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
-    // massCut_ = "@ZCandidates.size()==1 && ZCandidates[0].M()>=76.188 && ZCandidates[0].M()<=106.188";
-    massCut_ = "ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
-
-  if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
-    // ptCut_ = "@ZCandidates.size()==1 && ZCandidates[0].Pt()>=200.";
-     ptCut_ = "ZCandidates.Pt()>=200.";
-    // ptCut_ = "ZCandidates.Pt()>=100.";  // Troy revision
-
-  TString photonDeltaRcut;
   std::vector<TString> trigger;
   try {trigger = triggerMap_.at(sample);}
   catch (const std::out_of_range& oor) {trigger.clear();}
-
-  // commonCuts_ = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision+
-  if (trigger.empty()) {
-    commonCuts_ = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision-
-  } else {
-    commonCuts_ = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision-
-    trigCuts_ = "";
+  trigCuts_ = "";
+  if (!trigger.empty()) {
     int Ntrig = trigger.size();
     if (Ntrig > 1) trigCuts_ += TString("(");
     for (auto theTrigger : trigger)
       trigCuts_ += TString("(TriggerPass[")+theTrigger+TString("]==1) + ");
     if (Ntrig > 1) trigCuts_.Replace(trigCuts_.Length()-3, 3, ")");
   }
-  // cout << "trigCuts_ = " << trigCuts_ << endl;
 
+  // commonCuts_ = "(JetID==1&& HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && NVtx > 0 && BadPFMuonFilter && PFCaloMETRatio < 5)";  // Troy revision+
+  if (trigger.empty()) {
+    commonCuts_ = "JetID==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && NVtx > 0";  // Troy revision-
+  } else {
+    commonCuts_ = "JetID==1 && globalTightHalo2016Filter==1 && HBHENoiseFilter==1 && HBHEIsoNoiseFilter==1 && eeBadScFilter==1 && EcalDeadCellTriggerPrimitiveFilter==1 && BadChargedCandidateFilter && BadPFMuonFilter && NVtx > 0";  // Troy revision-
+  }
+  if (!isSkim_) commonCuts_ += " && PFCaloMETRatio < 5 && noMuonJet && noFakeJet";
+
+  massCut_ = "";
+  if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
+    massCut_ = "@ZCandidates.size()==1 && ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
+
+  ptCut_ = "";
+  if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
+    ptCut_ = "@ZCandidates.size()==1 && ZCandidates.Pt()>=200.";
+
+  photonDeltaRcut_ = "";
   if (sampleKey == "photon") {
-    if (applyPtCut_) ptCut_ = "Photons[0].Pt()>=200.";
-    if (trigger.empty() && applyMinDeltaRCut_) photonDeltaRcut = "madMinPhotonDeltaR>=0.4";
+    if (applyPtCut_) ptCut_ = "@Photons.size()==1 && Photons->at(0).Pt()>=200.";
+    if (trigger.empty() && applyMinDeltaRCut_) photonDeltaRcut_ = "madMinPhotonDeltaR>=0.4";
   }
 				       
     // 	if(extraCuts!=None):
@@ -309,7 +310,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   cuts += minDphicut_;
   cuts += massCut_;
   cuts += ptCut_;
-  cuts += photonDeltaRcut;
+  cuts += photonDeltaRcut_;
   cuts += commonCuts_;
   cuts += trigCuts_;
     // 	  if(applySF):
@@ -349,7 +350,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       hg->NminusOneCuts = baselineCuts;
       for (auto cutToOmit : hg->omitCut) hg->NminusOneCuts(*cutToOmit) = "1";
     }
-    cout << "For sample " << sample << ", histo " << hg->name  << ", hg->omitCut = ";
+    cout << "\n For sample " << sample << ", histo " << hg->name  << ", hg->omitCut = ";
     for (auto cutToOmit : hg->omitCut) cout << *cutToOmit << " ";
     cout << ", cuts = " << endl << hg->NminusOneCuts << endl;
     hg->NminusOneFormula = new TTreeFormula(hg->name, hg->NminusOneCuts, chain);
@@ -733,7 +734,9 @@ RA2bZinvAnalysis::fillCutMaps() {
       objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
       objCutMap_["ttz"] = "NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
       objCutMap_["slm"] = "NMuons==1 && NElectrons==0 && isoElectronTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["slm"] += " && TransverseMass(METPt,METPhi,Muons->at(0).Pt(),Muons->at(0).Phi()) < 100";  // add'l skim cut
       objCutMap_["sle"] = "NMuons==0 && NElectrons==1 && isoMuonTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["sle"] += " && TransverseMass(METPt,METPhi,Electrons->at(0).Pt(),Electrons->at(0).Phi()) < 100";  // add'l skim cut
     }
 
     minDphiCutMap_["nominal"] = "DeltaPhi1clean>0.5 && DeltaPhi2clean>0.5 && DeltaPhi3clean>0.3 && DeltaPhi4clean>0.3";

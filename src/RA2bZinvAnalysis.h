@@ -29,12 +29,13 @@ enum class skimStatus {skimmed, unskimmed};
 static TString HTcut_;
 static TString MHTcut_;
 static TString NJetscut_;
-static TString massCut_;
-static TString ptCut_;
 static TString objcut_;
 static TString minDphicut_;
 static TString commonCuts_;
 static TString trigCuts_;
+static TString ptCut_;
+static TString massCut_;
+static TString photonDeltaRcut_;
 
 class RA2bZinvAnalysis {
 
