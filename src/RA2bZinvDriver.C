@@ -4,12 +4,17 @@
   root -l -b RA2bZinvLoadClasses.C RA2bZinvDriver.C
   */
 
+#include "TROOT.h"
+#include "TEnv.h"
+
+  gEnv->SetValue("TFile.AsyncPrefetching", 1);
+
   bool doCCzvv = false;
   bool doCCttzvv = false;
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
   bool do1Dzmm = true;
-  bool do1Dzee = true;
+  bool do1Dzee = false;
   bool do1Ddymm = false;
   bool do1Ddyee = false;
   bool do1Dttzmm = false;
@@ -19,8 +24,10 @@
   bool do1Dttmm = false;
   bool do1Dttee = false;
   bool doMakeClass = false;
+  bool doCheckTrigPrescales = false;
 
-  RA2bZinvAnalysis analyzer;
+  RA2bZinvAnalysis analyzer(dataStatus::data, "V12");
+  // RA2bZinvAnalysis analyzer(dataStatus::data, "V15", skimStatus::unskimmed);
 
   if (doCCzvv || doCCttzvv) {
     // Output file
@@ -110,9 +117,14 @@
     histos1D->Write();
   }
 
+  if (doCheckTrigPrescales) {
+    analyzer.checkTrigPrescales("zmm");
+  }
+
   if (doMakeClass) {
     // analyzer.runMakeClass("zinv", "MC_V12");
     // analyzer.runMakeClass("zmm", "data_V12");
+    analyzer.runMakeClass("zmm", "data_V15");
   }
 
   gApplication->Terminate(0);
