@@ -50,6 +50,7 @@ public:
   TCut getCuts(const TString sampleKey);
   int kinBin(double& ht, double& mht);
   void checkTrigPrescales(const char* sample);
+  void checkActiveTrigPrescales(const char* sample);
   void runMakeClass(const char* sample, const char* ext);
 
   struct hist1D {

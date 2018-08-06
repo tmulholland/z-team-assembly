@@ -25,6 +25,9 @@ using std::endl;
 #include <fstream>
 using std::ifstream;
 
+#include <sstream>
+using std::stringstream;
+
 #include <string>
 
 ClassImp(RA2bZinvAnalysis)
@@ -361,6 +364,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   Long64_t Nentries = chain->GetEntries();
   cout << "Nentries in tree = " << Nentries << endl;
   int count = 0;
+  int countInFile = 0;
   for (Long64_t entry = 0; entry < Nentries; ++entry) {
     count++;
     if (count % 100000 == 0) cout << "Entry number " << count << endl;
@@ -370,8 +374,10 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       fCurrent = chain->GetTreeNumber();
       TFile* thisFile = chain->GetCurrentFile();
       if (thisFile) cout << "Current file in chain: " << thisFile->GetName() << endl;
+      countInFile = 0;
     }
     chain->GetEntry(entry);
+    countInFile++;  if (countInFile == 1) checkActiveTrigPrescales(sample);
     cleanVars();  // If unskimmed input, copy <var>clean to <var>
 
     if (ZCandidates->size() > 1) cout << ZCandidates->size() << " Z candidates found" << endl;
@@ -876,6 +882,28 @@ RA2bZinvAnalysis::checkTrigPrescales(const char* sample) {
 	if (theTrigPrescale != 1) cout << trigNo << ":  " << theTrigPrescale << endl;
     	++trigNo;
       }
+    }
+  }
+
+}  // ======================================================================================
+
+void
+RA2bZinvAnalysis::checkActiveTrigPrescales(const char* sample) {
+  std::vector<TString> trigger;
+  try {trigger = triggerMap_.at(sample);}
+  catch (const std::out_of_range& oor) {trigger.clear();}
+  for (auto theTrigger : trigger) {
+  stringstream ss;
+  ss << theTrigger;
+    string temp;
+    int trgIndex;
+    while (!ss.eof()) {
+      ss >> temp;
+      if (stringstream(temp) >> trgIndex) {
+	Int_t prescale = TriggerPrescales->at(trgIndex);
+	if (prescale != 1) cout << "Trigger " << trgIndex << " prescaled to " << prescale << endl;
+      }
+      temp = "";
     }
   }
 
