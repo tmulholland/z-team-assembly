@@ -64,10 +64,11 @@ public:
     Double_t* dvalue;
     Int_t* ivalue;
     void (RA2bZinvAnalysis::*filler)(TH1F* h, double wt);
-    std::vector<TString*> omitCut;
+    std::vector<TString*> omitCuts;
+    const char* addCuts;
     TString NminusOneCuts;
     TTreeFormula* NminusOneFormula;
-    hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr) {}
+  hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr), addCuts("") {}
   };
 
   class cutHistos {

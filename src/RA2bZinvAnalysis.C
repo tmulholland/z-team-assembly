@@ -351,10 +351,11 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       hg->NminusOneCuts = "1";
     } else {
       hg->NminusOneCuts = baselineCuts;
-      for (auto cutToOmit : hg->omitCut) hg->NminusOneCuts(*cutToOmit) = "1";
+      for (auto cutToOmit : hg->omitCuts) hg->NminusOneCuts(*cutToOmit) = "1";
+      if (strlen(hg->addCuts) != 0) hg->NminusOneCuts += TString(" && ") + hg->addCuts;
     }
-    cout << "\n For sample " << sample << ", histo " << hg->name  << ", hg->omitCut = ";
-    for (auto cutToOmit : hg->omitCut) cout << *cutToOmit << " ";
+    cout << "\n For sample " << sample << ", histo " << hg->name  << ", hg->omitCuts = ";
+    for (auto cutToOmit : hg->omitCuts) cout << *cutToOmit << " ";
     cout << ", cuts = " << endl << hg->NminusOneCuts << endl;
     hg->NminusOneFormula = new TTreeFormula(hg->name, hg->NminusOneCuts, chain);
     forNotify->Add(hg->NminusOneFormula);
@@ -441,21 +442,21 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   hHT.name = TString("hHT_") + TString(sample);  hHT.title = "HT";
   hHT.Nbins = 60;  hHT.lowEdge = 0;  hHT.highEdge = 3000;
   hHT.axisTitles.first = "HT [GeV]";  hHT.axisTitles.second = "Events/50 GeV";
-  hHT.dvalue = &HT;  hHT.omitCut.push_back(&HTcut_);
+  hHT.dvalue = &HT;  hHT.omitCuts.push_back(&HTcut_);
   histograms.push_back(&hHT);
 
   hist1D hMHT;
   hMHT.name = TString("hMHT_") + TString(sample);  hMHT.title = "MHT";
   hMHT.Nbins = 60;  hMHT.lowEdge = 0;  hMHT.highEdge = 3000;
   hMHT.axisTitles.first = "MHT [GeV]";  hMHT.axisTitles.second = "Events/50 GeV";
-  hMHT.dvalue = &MHT;  hMHT.omitCut.push_back(&MHTcut_);  hMHT.omitCut.push_back(&ptCut_);
+  hMHT.dvalue = &MHT;  hMHT.omitCuts.push_back(&MHTcut_);  hMHT.omitCuts.push_back(&ptCut_);
   histograms.push_back(&hMHT);
 
   hist1D hNJets;
   hNJets.name = TString("hNJets_") + TString(sample);  hNJets.title = "NJets";
   hNJets.Nbins = 20;  hNJets.lowEdge = 0;  hNJets.highEdge = 20;
   hNJets.axisTitles.first = "N (jets)";  hNJets.axisTitles.second = "Events/bin";
-  hNJets.ivalue = &NJets;  hNJets.omitCut.push_back(&NJetscut_);
+  hNJets.ivalue = &NJets;  hNJets.omitCuts.push_back(&NJetscut_);
   histograms.push_back(&hNJets);
 
   hist1D hBTags;
@@ -469,14 +470,14 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   hZmass.name = TString("hZmass_") + TString(sample);  hZmass.title = "Z mass";
   hZmass.Nbins = 30;  hZmass.lowEdge = 60;  hZmass.highEdge = 120;
   hZmass.axisTitles.first = "M(Z) [GeV]";  hZmass.axisTitles.second = "Events/2 GeV";
-  hZmass.filler = &RA2bZinvAnalysis::fillZmass;  hZmass.omitCut.push_back(&massCut_);
+  hZmass.filler = &RA2bZinvAnalysis::fillZmass;  hZmass.omitCuts.push_back(&massCut_);
   histograms.push_back(&hZmass);
 
   hist1D hZpt;
   hZpt.name = TString("hZpt_") + TString(sample);  hZpt.title = "Z Pt";
   hZpt.Nbins = 60;  hZpt.lowEdge = 0;  hZpt.highEdge = 3000;
   hZpt.axisTitles.first = "Pt(Z) [GeV]";  hZpt.axisTitles.second = "Events/50 GeV";
-  hZpt.filler = &RA2bZinvAnalysis::fillZpt;  hZpt.omitCut.push_back(&ptCut_);  hZpt.omitCut.push_back(&MHTcut_);
+  hZpt.filler = &RA2bZinvAnalysis::fillZpt;  hZpt.omitCuts.push_back(&ptCut_);  hZpt.omitCuts.push_back(&MHTcut_);
   histograms.push_back(&hZpt);
 
   hist1D hCutFlow;
@@ -491,6 +492,51 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   hCuts.axisTitles.first = "";  hCuts.axisTitles.second = "Events passing";
   histograms.push_back(&hCuts);
 
+  // Z mass in Njet, Nb bins
+  hist1D hZmass_2j0b(hZmass);
+  hZmass_2j0b.name = TString("hZmass_2j0b_") + TString(sample);  hZmass_2j0b.title = "Z mass, 2 jets & 0 b jets";
+  hZmass_2j0b.addCuts = "NJets==2 && BTags==0";
+  histograms.push_back(&hZmass_2j0b);
+
+  hist1D hZmass_2j1b(hZmass);
+  hZmass_2j1b.name = TString("hZmass_2j1b_") + TString(sample);  hZmass_2j1b.title = "Z mass, 2 jets & 1 b jet";
+  hZmass_2j1b.addCuts = "NJets==2 && BTags==1";
+  histograms.push_back(&hZmass_2j1b);
+
+  hist1D hZmass_2j2b(hZmass);
+  hZmass_2j2b.name = TString("hZmass_2j2b_") + TString(sample);  hZmass_2j2b.title = "Z mass, 2 jets & >=2 b jets";
+  hZmass_2j2b.addCuts = "NJets==2 && BTags>=2";
+  histograms.push_back(&hZmass_2j2b);
+  //
+  hist1D hZmass_3j0b(hZmass);
+  hZmass_3j0b.name = TString("hZmass_3j0b_") + TString(sample);  hZmass_3j0b.title = "Z mass, 3-4 jets & 0 b jets";
+  hZmass_3j0b.addCuts = "NJets>=3 && NJets <=4 && BTags==0";
+  histograms.push_back(&hZmass_3j0b);
+
+  hist1D hZmass_3j1b(hZmass);
+  hZmass_3j1b.name = TString("hZmass_3j1b_") + TString(sample);  hZmass_3j1b.title = "Z mass, 3-4 jets & 1 b jet";
+  hZmass_3j1b.addCuts = "NJets>=3 && NJets <=4 && BTags==1";
+  histograms.push_back(&hZmass_3j1b);
+
+  hist1D hZmass_3j2b(hZmass);
+  hZmass_3j2b.name = TString("hZmass_3j2b_") + TString(sample);  hZmass_3j2b.title = "Z mass, 3-4 jets & >=2 b jets";
+  hZmass_3j2b.addCuts = "NJets>=3 && NJets <=4 && BTags>=2";
+  histograms.push_back(&hZmass_3j2b);
+  //
+  hist1D hZmass_5j0b(hZmass);
+  hZmass_5j0b.name = TString("hZmass_5j0b_") + TString(sample);  hZmass_5j0b.title = "Z mass, >=5 jets & 0 B jets";
+  hZmass_5j0b.addCuts = "NJets >=5 && BTags==0";
+  histograms.push_back(&hZmass_5j0b);
+
+  hist1D hZmass_5j1b(hZmass);
+  hZmass_5j1b.name = TString("hZmass_5j1b_") + TString(sample);  hZmass_5j1b.title = "Z mass, >=5 jets & 1 B jet";
+  hZmass_5j1b.addCuts = "NJets >=5 && BTags==1";
+  histograms.push_back(&hZmass_5j1b);
+
+  hist1D hZmass_5j2b(hZmass);
+  hZmass_5j2b.name = TString("hZmass_5j2b_") + TString(sample);  hZmass_5j2b.title = "Z mass, >=5 jets & >=2 B jets";
+  hZmass_5j2b.addCuts = "NJets >=5 && BTags>=2";
+  histograms.push_back(&hZmass_5j2b);
   bookAndFillHistograms(sample, histograms);
 
   std::vector<TH1F*> theHists;
@@ -500,6 +546,15 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   theHists.push_back(hBTags.hist);
   theHists.push_back(hZmass.hist);
   theHists.push_back(hZpt.hist);
+  theHists.push_back(hZmass_2j0b.hist);
+  theHists.push_back(hZmass_2j1b.hist);
+  theHists.push_back(hZmass_2j2b.hist);
+  theHists.push_back(hZmass_3j0b.hist);
+  theHists.push_back(hZmass_3j1b.hist);
+  theHists.push_back(hZmass_3j2b.hist);
+  theHists.push_back(hZmass_5j0b.hist);
+  theHists.push_back(hZmass_5j1b.hist);
+  theHists.push_back(hZmass_5j2b.hist);
 
   return theHists;
 
@@ -542,7 +597,7 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
   // Traverse the events in the chain
   Long64_t Nentries = chain->GetEntries();
   cout << "Nentries in tree = " << Nentries << endl;
-  int count = 0, outCount = 0;
+  int count = 0, outCount = 0, countInFile = 0;
   for (Long64_t entry = 0; entry < Nentries; ++entry) {
     count++;
     if (count < 20 || count % 100000 == 0) cout << "Entry number " << count << endl;
@@ -554,8 +609,10 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
     	cout << "Current file in chain: " << thisFile->GetName() << endl;
     	if (btagcorr) btagcorr->SetEffs(thisFile);
       }
+      countInFile = 0;
     }
     chain->GetEntry(entry);
+    countInFile++;  if (countInFile == 1) checkActiveTrigPrescales(sample);
     cleanVars();  // If unskimmed input, copy <var>clean to <var>
 
     UInt_t binCC = 0;
