@@ -29,12 +29,13 @@ enum class skimStatus {skimmed, unskimmed};
 static TString HTcut_;
 static TString MHTcut_;
 static TString NJetscut_;
-static TString massCut_;
-static TString ptCut_;
 static TString objcut_;
 static TString minDphicut_;
 static TString commonCuts_;
 static TString trigCuts_;
+static TString ptCut_;
+static TString massCut_;
+static TString photonDeltaRcut_;
 
 class RA2bZinvAnalysis {
 
@@ -49,6 +50,7 @@ public:
   TCut getCuts(const TString sampleKey);
   int kinBin(double& ht, double& mht);
   void checkTrigPrescales(const char* sample);
+  void checkActiveTrigPrescales(const char* sample);
   void runMakeClass(const char* sample, const char* ext);
 
   struct hist1D {
@@ -62,10 +64,11 @@ public:
     Double_t* dvalue;
     Int_t* ivalue;
     void (RA2bZinvAnalysis::*filler)(TH1F* h, double wt);
-    std::vector<TString*> omitCut;
+    std::vector<TString*> omitCuts;
+    const char* addCuts;
     TString NminusOneCuts;
     TTreeFormula* NminusOneFormula;
-    hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr) {}
+  hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr), addCuts("") {}
   };
 
   class cutHistos {
