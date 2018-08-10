@@ -46,7 +46,7 @@ def cmsLumi(pad,  iPeriod=None,  iPosX=None, extraText=None ):
     lumi_13TeV = "2.3 fb^{-1}"
     lumi_13TeV_2016 = "20 fb^{-1}"
     lumi_13TeV_V8 = "4.0 fb^{-1}"
-    lumi_13TeV_V9 = "35.9 fb^{-1}"
+    lumi_13TeV_V12 = "35.9 fb^{-1}"
     lumi_13TeV_V15 = "14.0 fb^{-1}"
     lumi_8TeV  = "19.7 fb^{-1}" 
     lumi_7TeV  = "5.1 fb^{-1}"
@@ -96,7 +96,7 @@ def cmsLumi(pad,  iPeriod=None,  iPosX=None, extraText=None ):
         lumiText += lumi_13TeV_2016
         lumiText += " (13 TeV)"
     elif ( iPeriod==6 ):
-        lumiText += lumi_13TeV_V9
+        lumiText += lumi_13TeV_V12
         lumiText += " (13 TeV)"
     elif ( iPeriod==7 ):
         if( outOfFrame ):lumiText += "#scale[0.85]{"
@@ -298,7 +298,6 @@ def setTdrStyle():
     tdrStyle.SetNdivisions(510, "XYZ")
     tdrStyle.SetPadTickX(1)  # To get tick marks on the opposite side of the frame
     tdrStyle.SetPadTickY(1)
-
     
     # Change for log plots:
     tdrStyle.SetOptLogx(0)
@@ -3216,7 +3215,7 @@ def getPlotAndRatio(numHists, denomHists=None, bottomPlots=None, doStack=None, T
     if(errorBandColor==None):
         errorBandColor=denomColor
     if(errorBandFillStyle==None):
-        errorBandFillStyle=3002
+        errorBandFillStyle=3005  # Troy mod (was 3002)
     if(nDivRatio==None):
         nDivRatio=5
     if(nDivX==None):
@@ -3458,7 +3457,6 @@ def getPlotAndRatio(numHists, denomHists=None, bottomPlots=None, doStack=None, T
     
     if(not(doClosureStyle)):
         denomHist.Draw(denomDrawStyle)
-
     hs = ROOT.THStack("hs","hs")
     if(doStack):
         for i in range(len(denomHists)):
@@ -4496,9 +4494,21 @@ def getZmassFitPlot(fitFunc=None, dataSet=None, mcSet=None, plotMC=None, doDiMu=
             h_zllE = getDist("zll"+sampleSuffix, "ZCandidates.M()", distRange=distRange, nJetBin=nJetBin, bJetBin=bJetBin, kinBin=kinBin, extraCuts=extraCuts,applyMassCut=True)
             nEvents.append(h_zllE)
             dataSet.append(d3)
-    elif(mcSet==None):
-        if(plotMC==None):
-            plotMC=False ## user gives dataSet, can't predict corresponding MC set
+    else:
+        nEvents=[]
+        for dataSetDict in dataSet:
+            dataSetDict["sig"].SetMarkerStyle(20)
+            dataSetDict["sig"].SetMarkerSize(1.1)
+            hS = dataSetDict["sig"]
+            hE = hS.Clone()
+            for bin in range(9):  # underflow to 76.0
+                hE.SetBinContent(bin, 0)
+            for bin in range(24, hE.GetXaxis().GetNbins()+2):  # 106.0 to overflow
+                hE.SetBinContent(bin, 0)
+            nEvents.append(hE)
+        if(mcSet==None):
+            if(plotMC==None):
+                plotMC=False ## user gives dataSet, can't predict corresponding MC set
 
     if(type(dataSet) is not list):
         dataSet = [dataSet]
@@ -4571,6 +4581,23 @@ def getZmassFitPlot(fitFunc=None, dataSet=None, mcSet=None, plotMC=None, doDiMu=
                 mcList.append(h_ttzll)
                 mcList.append(h_dibosll)
                 mcList.append(h_ttll)
+
+        else:
+            # The MC stacked histograms are provided
+            # Assume stack order is tt, diboson, ttz, dy
+            for stackhist in mcSet:
+                if ((doDiMu and ("hsMM" in stackhist.GetName())) or 
+                    (doDiEl and ("hsEE" in stackhist.GetName())) or 
+                    (doDiLep and ("hsLL" in stackhist.GetName()))):
+                    hlist = stackhist.GetHists()
+                    hlist[0].SetFillColor(38)
+                    hlist[1].SetFillColor(5)
+                    hlist[2].SetFillColor(8)
+                    hlist[3].SetFillColor(2)
+                    mcList.append(hlist[3])
+                    mcList.append(hlist[1])
+                    mcList.append(hlist[2])
+                    mcList.append(hlist[0])
 
     canvas = []
     purityList = []
