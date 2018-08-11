@@ -13,20 +13,21 @@
   bool doCCttzvv = false;
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
-  bool do1Dzmm = true;
+  bool do1Dzmm = false;
   bool do1Dzee = false;
-  bool do1Ddymm = false;
-  bool do1Ddyee = false;
-  bool do1Dttzmm = false;
-  bool do1Dttzee = false;
-  bool do1DVVmm = false;
-  bool do1DVVee = false;
-  bool do1Dttmm = false;
-  bool do1Dttee = false;
+  bool do1Ddymm = true;
+  bool do1Ddyee = true;
+  bool do1Dttzmm = true;
+  bool do1Dttzee = true;
+  bool do1DVVmm = true;
+  bool do1DVVee = true;
+  bool do1Dttmm = true;
+  bool do1Dttee = true;
   bool doMakeClass = false;
-  bool doCheckTrigPrescales = false;
+  bool doListTrigPrescales = false;
 
-  RA2bZinvAnalysis analyzer(dataStatus::data, "V12");
+  // RA2bZinvAnalysis analyzer(dataStatus::data, "V12");
+  RA2bZinvAnalysis analyzer(dataStatus::MC, "V12");
   // RA2bZinvAnalysis analyzer(dataStatus::data, "V15", skimStatus::unskimmed);
 
   if (doCCzvv || doCCttzvv) {
@@ -117,7 +118,7 @@
     histos1D->Write();
   }
 
-  if (doCheckTrigPrescales) {
+  if (doListTrigPrescales) {
     analyzer.checkTrigPrescales("zmm");
   }
 

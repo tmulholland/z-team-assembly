@@ -10,7 +10,7 @@
 
 #define ISSKIM
 #define ISV12
-/* #define ISMC */
+#define ISMC
 
 #include <TString.h>
 #include <TChain.h>
@@ -68,7 +68,7 @@ public:
     const char* addCuts;
     TString NminusOneCuts;
     TTreeFormula* NminusOneFormula;
-  hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr), addCuts("") {}
+    hist1D() : dvalue(nullptr), ivalue(nullptr), filler(nullptr), addCuts("") {}
   };
 
   class cutHistos {

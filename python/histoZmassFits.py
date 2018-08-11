@@ -25,8 +25,8 @@ jbGroup = 0
 for jbin in ["2j", "3j", "5j", "all"]:
   for bbin in ["0b", "1b", "2b"]:
     if (jbin == "all"):
-      if (bbin == "0b"):
-        histNameRoot = "hZmass_all_"
+      if (bbin == "2b"):
+        histNameRoot = "hZmass_"
         plotNameRoot = "fitZmass_all_"
       else:
         continue
@@ -81,9 +81,9 @@ for jbin in ["2j", "3j", "5j", "all"]:
         elif (i == 4):
           canv.SaveAs(str(plotNameRoot)+"ee.pdf")
         elif (cIter == 1):
-          canv.SaveAs("fitZmass_all_mm.pdf")
+          canv.SaveAs("fitZmass_allloose_mm.pdf")
         elif (cIter == 3):
-          canv.SaveAs("fitZmass_all_ee.pdf")
+          canv.SaveAs("fitZmass_allloose_ee.pdf")
     jbGroup += 4
 
 # outFile.Write()
