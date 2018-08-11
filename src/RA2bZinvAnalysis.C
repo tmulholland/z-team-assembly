@@ -62,7 +62,7 @@ RA2bZinvAnalysis::Init() {
   // njSplit_ = false;
   useTreeCCbin_ = true;  // only in skims
   applyBTagSF_ = false;  // overridden false if !isMC_
-  applyPuWeight_ = true;  // overridden false if !isMC_
+  applyPuWeight_ = false;  // overridden false if !isMC_
   customPuWeight_ = true;  // Substitute Kevin P recipe for the PuWeight in the tree
   puWeight = 1;  // overridden from tree if isMC_
   Weight = 1;  // overridden from tree if isMC_
@@ -83,9 +83,9 @@ RA2bZinvAnalysis::Init() {
   }
   if (ntupleVersion_ == "V12") {
     // treeLoc_ = "/nfs/data38/cms/wtford/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by wtford (Zjets only)
-    // treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
+    treeLoc_ = "/nfs/data38/cms/mulholland/lpcTrees/Skims/Run2ProductionV12";  // Colorado, owned by mulholland
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // xrootd
-    treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
+    // treeLoc_ = "/eos/uscms/store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV12";  // from cmslpc
   } else if (ntupleVersion_ == "V15") {
     treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV15";  // ntuples, xrootd
     // treeLoc_ = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Skims/Run2ProductionV15";  // xrootd
@@ -198,6 +198,18 @@ RA2bZinvAnalysis::Init() {
   fillFileMap();
   fillCutMaps();
 
+  cout << "After initialization," << endl;
+  cout << "The MC flag is " << isMC_ << endl;
+  cout << "The ntuple version is " << ntupleVersion_ << endl;
+  cout << "The input-files-are-skims flag is " << isSkim_ << endl;
+  cout << "The era is " << era_ << endl;
+  cout << "The integrated luminosity = " << intLumi_ << endl;
+  cout << "The minDeltaPhi cuts are " << deltaPhi_ << endl;
+  cout << "The apply b-tag scale factors flag is " << applyBTagSF_ << endl;
+  cout << "The apply pileup weight flag is " << applyPuWeight_ << endl;
+  cout << "The custom pileup weight flag is " << customPuWeight_ << endl;
+
+
 }  // ======================================================================================
 
 TChain*
@@ -261,7 +273,7 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   std::vector<TString> trigger;
   try {trigger = triggerMap_.at(sample);}
   catch (const std::out_of_range& oor) {trigger.clear();}
-  trigCuts_ = "";
+  trigCuts_ = "1";
   if (!trigger.empty()) {
     int Ntrig = trigger.size();
     if (Ntrig > 1) trigCuts_ += TString("(");
@@ -278,15 +290,15 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   }
   if (!isSkim_) commonCuts_ += " && PFCaloMETRatio < 5 && noMuonJet && noFakeJet";
 
-  massCut_ = "";
+  massCut_ = "1";
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyMassCut_)
     massCut_ = "@ZCandidates.size()==1 && ZCandidates.M()>=76.188 && ZCandidates.M()<=106.188";
 
-  ptCut_ = "";
+  ptCut_ = "1";
   if ((sampleKey == "zmm" || sampleKey == "zee" || sampleKey == "zll") && applyPtCut_)
     ptCut_ = "@ZCandidates.size()==1 && ZCandidates.Pt()>=200.";
 
-  photonDeltaRcut_ = "";
+  photonDeltaRcut_ = "1";
   if (sampleKey == "photon") {
     if (applyPtCut_) ptCut_ = "@Photons.size()==1 && Photons->at(0).Pt()>=200.";
     if (trigger.empty() && applyMinDeltaRCut_) photonDeltaRcut_ = "madMinPhotonDeltaR>=0.4";
@@ -335,7 +347,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
   // Define N - 1 (or N - multiple) cuts, book histograms.  Traverse the chain and fill.
   //
   TCut baselineCuts = getCuts(sample);
-  cout << "baseline = " << endl << baselineCuts << endl;
+  cout << endl << "baseline = " << endl << baselineCuts << endl << endl;
   Int_t fCurrent;  // current Tree number in a TChain
   TChain* chain = getChain(sample, &fCurrent);
   TObjArray* forNotify = new TObjArray;
@@ -378,7 +390,11 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       countInFile = 0;
     }
     chain->GetEntry(entry);
-    countInFile++;  if (countInFile == 1) checkActiveTrigPrescales(sample);
+    countInFile++;
+    if (countInFile == 1) {
+      checkActiveTrigPrescales(sample);
+      if (isMC_) cout << "MC weight for this file is " << Weight << endl;
+    }
     cleanVars();  // If unskimmed input, copy <var>clean to <var>
 
     if (ZCandidates->size() > 1) cout << ZCandidates->size() << " Z candidates found" << endl;
@@ -612,7 +628,10 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       countInFile = 0;
     }
     chain->GetEntry(entry);
-    countInFile++;  if (countInFile == 1) checkActiveTrigPrescales(sample);
+    if (countInFile == 1) {
+      checkActiveTrigPrescales(sample);
+      if (isMC_) cout << "MC weight for this file is " << Weight << endl;
+    }
     cleanVars();  // If unskimmed input, copy <var>clean to <var>
 
     UInt_t binCC = 0;
@@ -767,10 +786,13 @@ RA2bZinvAnalysis::fillCutMaps() {
     if (ntupleVersion_ == "V12") {
       objCutMap_["sig"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
       objCutMap_["zmm"] = "@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoMuonTracks==0";
+      // objCutMap_["zmm"] = "@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0;  // Troy mod+
       objCutMap_["zee"] = "@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0 && (@Photons.size()==0) && isoElectronTracks==0";
+      // objCutMap_["zee"] = "@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0;  // Troy mod+
       objCutMap_["zll"] = "((@Muons.size()==2 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0) || (@Muons.size()==0 && @Electrons.size()==2 && isoMuonTracks==0 && isoPionTracks==0))";
       objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
-      objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+      objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons->at(0).Pt()>=200 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";
+      // objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && @Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0";  // Troy mod+
       objCutMap_["ttz"] = "@Muons.size()==0 && @Electrons.size()==0 && isoElectronTracks==0 && isoMuonTracks==0 && isoPionTracks==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
       objCutMap_["slm"] = "@Muons.size()==1 && @Electrons.size()==0 && isoElectronTracks==0 && isoPionTracks==0";
       objCutMap_["sle"] = "@Muons.size()==0 && @Electrons.size()==1 && isoMuonTracks==0 && isoPionTracks==0";
@@ -794,7 +816,7 @@ RA2bZinvAnalysis::fillCutMaps() {
       objCutMap_["zee"] = "NMuons==0 && NElectrons==2 && isoMuonTracksclean==0 && isoPionTracksclean==0 && (@Photons.size()==0) && isoElectronTracksclean==0";
       objCutMap_["zll"] = "((NMuons==2 && NElectrons==0 && isoElectronTracksclean==0 && isoPionTracksclean==0) || (NMuons==0 && NElectrons==2 && isoMuonTracksclean==0 && isoPionTracksclean==0))";
       objCutMap_["photon"] = "Sum$(Photons_nonPrompt)==0 && Sum$(Photons_fullID)==1 && (@Photons.size()==1) && NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
-      objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons[0].Pt()>=200 && NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
+      objCutMap_["photonqcd"] = "Sum$(Photons_nonPrompt)!=0 && Photons->at(0).Pt()>=200 && NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0";
       objCutMap_["ttz"] = "NMuons==0 && NElectrons==0 && isoElectronTracksclean==0 && isoMuonTracksclean==0 && isoPionTracksclean==0 && (@GenMuons.size()==0 && @GenElectrons.size()==0 && @GenTaus.size()==0)";
       objCutMap_["slm"] = "NMuons==1 && NElectrons==0 && isoElectronTracksclean==0 && isoPionTracksclean==0";
       objCutMap_["slm"] += " && TransverseMass(METPt,METPhi,Muons->at(0).Pt(),Muons->at(0).Phi()) < 100";  // add'l skim cut
