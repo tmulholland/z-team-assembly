@@ -62,14 +62,14 @@ RA2bZinvAnalysis::Init() {
   // njSplit_ = false;
   useTreeCCbin_ = true;  // only in skims
   applyBTagSF_ = false;  // overridden false if !isMC_
-  applyPuWeight_ = false;  // overridden false if !isMC_
+  applyPuWeight_ = true;  // overridden false if !isMC_
   customPuWeight_ = true;  // Substitute Kevin P recipe for the PuWeight in the tree
   puWeight = 1;  // overridden from tree if isMC_
   Weight = 1;  // overridden from tree if isMC_
   TrueNumInteractions = 20;  // overridden from tree if isMC_
   RA2bin = 0;  // overridden from tree if isSkim
-  NElectrons = 0;  // overriden from tree if >=V15
-  NMuons = 0;  // overriden from tree if >=V15
+  NElectrons = 0;  // overridden from tree if >=V15
+  NMuons = 0;  // overridden from tree if >=V15
 
   if (!isMC_) {
     applyBTagSF_ = false;
@@ -156,9 +156,11 @@ RA2bZinvAnalysis::Init() {
     activeBranches_.push_back("globalTightHalo2016Filter");
     activeBranches_.push_back("BadChargedCandidateFilter");
     activeBranches_.push_back("BadPFMuonFilter");
+    activeBranches_.push_back("nAllVertices");
     if (isMC_) {
       activeBranches_.push_back("puWeight");
       activeBranches_.push_back("Weight");
+      activeBranches_.push_back("TrueNumInteractions");
       activeBranches_.push_back("madMinPhotonDeltaR");
     }
 
@@ -273,10 +275,11 @@ RA2bZinvAnalysis::getCuts(const TString sample) {
   std::vector<TString> trigger;
   try {trigger = triggerMap_.at(sample);}
   catch (const std::out_of_range& oor) {trigger.clear();}
-  trigCuts_ = "1";
-  if (!trigger.empty()) {
+  if (trigger.empty()) {
+    trigCuts_ = "1";
+  } else {
     int Ntrig = trigger.size();
-    if (Ntrig > 1) trigCuts_ += TString("(");
+    if (Ntrig > 1) trigCuts_ = TString("(");
     for (auto theTrigger : trigger)
       trigCuts_ += TString("(TriggerPass[")+theTrigger+TString("]==1) + ");
     if (Ntrig > 1) trigCuts_.Replace(trigCuts_.Length()-3, 3, ")");
@@ -457,42 +460,42 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   hist1D hHT;
   hHT.name = TString("hHT_") + TString(sample);  hHT.title = "HT";
   hHT.Nbins = 60;  hHT.lowEdge = 0;  hHT.highEdge = 3000;
-  hHT.axisTitles.first = "HT [GeV]";  hHT.axisTitles.second = "Events/50 GeV";
+  hHT.axisTitles.first = "HT [GeV]";  hHT.axisTitles.second = "Events / 50 GeV";
   hHT.dvalue = &HT;  hHT.omitCuts.push_back(&HTcut_);
   histograms.push_back(&hHT);
 
   hist1D hMHT;
   hMHT.name = TString("hMHT_") + TString(sample);  hMHT.title = "MHT";
   hMHT.Nbins = 60;  hMHT.lowEdge = 0;  hMHT.highEdge = 3000;
-  hMHT.axisTitles.first = "MHT [GeV]";  hMHT.axisTitles.second = "Events/50 GeV";
+  hMHT.axisTitles.first = "MHT [GeV]";  hMHT.axisTitles.second = "Events / 50 GeV";
   hMHT.dvalue = &MHT;  hMHT.omitCuts.push_back(&MHTcut_);  hMHT.omitCuts.push_back(&ptCut_);
   histograms.push_back(&hMHT);
 
   hist1D hNJets;
   hNJets.name = TString("hNJets_") + TString(sample);  hNJets.title = "NJets";
   hNJets.Nbins = 20;  hNJets.lowEdge = 0;  hNJets.highEdge = 20;
-  hNJets.axisTitles.first = "N (jets)";  hNJets.axisTitles.second = "Events/bin";
+  hNJets.axisTitles.first = "N (jets)";  hNJets.axisTitles.second = "Events / bin";
   hNJets.ivalue = &NJets;  hNJets.omitCuts.push_back(&NJetscut_);
   histograms.push_back(&hNJets);
 
   hist1D hBTags;
   hBTags.name = TString("hBTags_") + TString(sample);  hBTags.title = "BTags";
   hBTags.Nbins = 20;  hBTags.lowEdge = 0;  hBTags.highEdge = 20;
-  hBTags.axisTitles.first = "N (b jets)";  hBTags.axisTitles.second = "Events/bin";
+  hBTags.axisTitles.first = "N (b jets)";  hBTags.axisTitles.second = "Events / bin";
   hBTags.ivalue = &BTags;
   histograms.push_back(&hBTags);
 
   hist1D hZmass;
   hZmass.name = TString("hZmass_") + TString(sample);  hZmass.title = "Z mass";
   hZmass.Nbins = 30;  hZmass.lowEdge = 60;  hZmass.highEdge = 120;
-  hZmass.axisTitles.first = "M(Z) [GeV]";  hZmass.axisTitles.second = "Events/2 GeV";
+  hZmass.axisTitles.first = "M(Z) [GeV]";  hZmass.axisTitles.second = "Events / 2 GeV";
   hZmass.filler = &RA2bZinvAnalysis::fillZmass;  hZmass.omitCuts.push_back(&massCut_);
   histograms.push_back(&hZmass);
 
   hist1D hZpt;
   hZpt.name = TString("hZpt_") + TString(sample);  hZpt.title = "Z Pt";
   hZpt.Nbins = 60;  hZpt.lowEdge = 0;  hZpt.highEdge = 3000;
-  hZpt.axisTitles.first = "Pt(Z) [GeV]";  hZpt.axisTitles.second = "Events/50 GeV";
+  hZpt.axisTitles.first = "Pt(Z) [GeV]";  hZpt.axisTitles.second = "Events / 50 GeV";
   hZpt.filler = &RA2bZinvAnalysis::fillZpt;  hZpt.omitCuts.push_back(&ptCut_);  hZpt.omitCuts.push_back(&MHTcut_);
   histograms.push_back(&hZpt);
 
@@ -507,6 +510,20 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   hCuts.Nbins = 10;  hCuts.lowEdge = 0;  hCuts.highEdge = 10;
   hCuts.axisTitles.first = "";  hCuts.axisTitles.second = "Events passing";
   histograms.push_back(&hCuts);
+
+  hist1D hVertices;
+  hVertices.name = TString("hVertices_") + TString(sample);  hVertices.title = "Number of reco vertices";
+  hVertices.Nbins = 100;  hVertices.lowEdge = 0;  hVertices.highEdge = 100;
+  hVertices.axisTitles.first = "No. of vertices";  hVertices.axisTitles.second = "Events / bin";
+  hVertices.ivalue = &nAllVertices;
+  histograms.push_back(&hVertices);
+
+  hist1D hTrueNumInt;
+  hTrueNumInt.name = TString("hTrueNumInt_") + TString(sample);  hTrueNumInt.title = "Number of generated interactions";
+  hTrueNumInt.Nbins = 100;  hTrueNumInt.lowEdge = 0;  hTrueNumInt.highEdge = 100;
+  hTrueNumInt.axisTitles.first = "No. of interactions";  hTrueNumInt.axisTitles.second = "Events / bin";
+  hTrueNumInt.dvalue = &TrueNumInteractions;
+  histograms.push_back(&hTrueNumInt);
 
   // Z mass in Njet, Nb bins
   hist1D hZmass_2j0b(hZmass);
@@ -562,6 +579,8 @@ RA2bZinvAnalysis::makeHistograms(const char* sample) {
   theHists.push_back(hBTags.hist);
   theHists.push_back(hZmass.hist);
   theHists.push_back(hZpt.hist);
+  theHists.push_back(hVertices.hist);
+  theHists.push_back(hTrueNumInt.hist);
   theHists.push_back(hZmass_2j0b.hist);
   theHists.push_back(hZmass_2j1b.hist);
   theHists.push_back(hZmass_2j2b.hist);

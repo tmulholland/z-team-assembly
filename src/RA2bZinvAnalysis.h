@@ -10,7 +10,7 @@
 
 #define ISSKIM
 #define ISV12
-#define ISMC
+/* #define ISMC */
 
 #include <TString.h>
 #include <TChain.h>
