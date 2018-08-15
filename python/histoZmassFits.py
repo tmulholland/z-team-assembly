@@ -15,7 +15,8 @@ print '\n'
 print "removeDYkfactor = "+str(removeDYkfactor)
 
 DataFile = ROOT.TFile('../outputs/histsDY_2016v12.root')
-MCfile = ROOT.TFile('../outputs/histsDYMC_2016v12.root')
+# MCfile = ROOT.TFile('../outputs/histsDYMC_2016v12.root')
+MCfile = ROOT.TFile('../outputs/histsDYMC_2016v12_puWt.root')
 
 reactions = ["tt", "ttz", "VV", "dy"]
 
