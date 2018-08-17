@@ -9,12 +9,12 @@
 
   gEnv->SetValue("TFile.AsyncPrefetching", 1);
 
-  bool doCCzvv = false;
-  bool doCCttzvv = false;
+  bool doCCzvv = true;
+  bool doCCttzvv = true;
   bool do1Dzvv = false;
   bool do1Dttzvv = false;
-  bool do1Dzmm = true;
-  bool do1Dzee = true;
+  bool do1Dzmm = false;
+  bool do1Dzee = false;
   bool do1Ddymm = false;
   bool do1Ddyee = false;
   bool do1Dttzmm = false;
@@ -26,8 +26,8 @@
   bool doMakeClass = false;
   bool doListTrigPrescales = false;
 
-  RA2bZinvAnalysis analyzer(dataStatus::data, "V12");
-  // RA2bZinvAnalysis analyzer(dataStatus::MC, "V12");
+  // RA2bZinvAnalysis analyzer(dataStatus::data, "V12");
+  RA2bZinvAnalysis analyzer(dataStatus::MC, "V12");
   // RA2bZinvAnalysis analyzer(dataStatus::data, "V15", skimStatus::unskimmed);
 
   if (doCCzvv || doCCttzvv) {

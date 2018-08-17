@@ -162,6 +162,9 @@ RA2bZinvAnalysis::Init() {
       activeBranches_.push_back("Weight");
       activeBranches_.push_back("TrueNumInteractions");
       activeBranches_.push_back("madMinPhotonDeltaR");
+      activeBranches_.push_back("GenMuons");
+      activeBranches_.push_back("GenElectrons");
+      activeBranches_.push_back("GenTaus");
     }
 
     kinThresholds_.push_back({300, 300, 500, 1000});  // mht threshold, {ht thresholds}
@@ -402,6 +405,7 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
 
     if (ZCandidates->size() > 1) cout << ZCandidates->size() << " Z candidates found" << endl;
 
+    // Compute event weight factors
     Double_t eventWt = 1;
     Double_t PUweight = 1;
     if (applyPuWeight_ && customPuWeight_) {
@@ -412,7 +416,6 @@ RA2bZinvAnalysis::bookAndFillHistograms(const char* sample, std::vector<hist1D*>
       eventWt = 1000*intLumi_*Weight*PUweight;
       if (eventWt < 0) eventWt *= -1;
     }
-
 
     for (auto & hg : histograms) {
       if (hg->name.Contains(TString("hCut"))) {
@@ -647,6 +650,7 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       countInFile = 0;
     }
     chain->GetEntry(entry);
+    countInFile++;
     if (countInFile == 1) {
       checkActiveTrigPrescales(sample);
       if (isMC_) cout << "MC weight for this file is " << Weight << endl;
@@ -668,12 +672,10 @@ RA2bZinvAnalysis::makeCChist(const char* sample) {
       // This recipe from Kevin Pedro, https://twiki.cern.ch/twiki/bin/viewauth/CMS/RA2b13TeVProduction
       PUweight = puHist_->GetBinContent(puHist_->GetXaxis()->FindBin(min(TrueNumInteractions, puHist_->GetBinLowEdge(puHist_->GetNbinsX()+1))));
     }
-    if (count < 20 || count % 10000 == 0) cout << "PUweight = " << PUweight << endl;
     if (isMC_) {
       eventWt = 1000*intLumi_*Weight*selWt*PUweight;
       if (eventWt < 0) eventWt *= -1;
     }
-    if (count < 20 || count % 10000 == 0) cout << "eventWt = " << eventWt << endl;
 
     if (useTreeCCbin_ && !applyBTagSF_) {
       binCC = RA2bin;
